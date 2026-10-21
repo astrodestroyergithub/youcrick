@@ -1,0 +1,2688 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>YouCrick — Live Cricket Scores, Ball-by-Ball Commentary, Stats & Analytics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            cb: {
+              emerald: '#009270',
+              dark: '#007358',
+              accent: '#10b981'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+/* YouCrick — Custom Responsive Styles & Theme System */
+:root {
+  --cb-emerald: #009270;
+  --cb-emerald-dark: #007358;
+  --cb-emerald-light: #e6f7f3;
+  --cb-accent: #10b981;
+  --cb-gold: #f59e0b;
+  --cb-crimson: #ef4444;
+  --bg-primary: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-elevated: #f8fafc;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+}
+
+.dark {
+  --bg-primary: #090d16;
+  --bg-card: #111827;
+  --bg-elevated: #1e293b;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --border-color: #1f2937;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  scroll-behavior: smooth;
+}
+
+/* Custom sleek scrollbars for horizontal carousels & tables */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.thin-scrollbar::-webkit-scrollbar {
+  height: 5px;
+  width: 5px;
+}
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 9999px;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 146, 112, 0.65);
+}
+
+/* Live Pulsing Indicator */
+@keyframes pulse-ring {
+  0% { transform: scale(0.85); opacity: 0.9; }
+  70% { transform: scale(1.9); opacity: 0; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+.live-dot {
+  position: relative;
+  display: inline-flex;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background-color: #ef4444;
+}
+.live-dot::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background-color: #ef4444;
+  animation: pulse-ring 1.6s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+}
+
+/* Smooth Card Hover & Active States */
+.yc-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0.875rem;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.yc-card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
+  border-color: var(--cb-emerald);
+}
+
+/* Active navigation pills */
+.nav-tab-active {
+  background-color: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: inset 0 -2px 0 #34d399;
+}
+
+.subtab-active {
+  background-color: #009270 !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  border-color: #009270 !important;
+}
+
+/* Ball Outcome Badges */
+.ball-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  padding: 0 0.35rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  user-select: none;
+}
+.ball-0 { background: #e2e8f0; color: #475569; }
+.dark .ball-0 { background: #334155; color: #cbd5e1; }
+.ball-1, .ball-2, .ball-3 { background: #dbeafe; color: #1d4ed8; }
+.dark .ball-1, .dark .ball-2, .dark .ball-3 { background: #1e3a8a; color: #93c5fd; }
+.ball-4 { background: #10b981; color: #ffffff; }
+.ball-6 { background: #8b5cf6; color: #ffffff; }
+.ball-W { background: #ef4444; color: #ffffff; }
+.ball-WD, .ball-NB { background: #f59e0b; color: #ffffff; }
+
+/* Responsive Table Wrapper */
+.responsive-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Pitch & Wagon Wheel Canvas Responsive Scaling */
+.canvas-viz-container {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+canvas.viz-canvas {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Toast Notification Animation */
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.toast-enter {
+  animation: slideUpFade 0.22s ease-out forwards;
+}
+
+/* Ensure bottom bar clearance on mobile */
+@media (max-width: 767px) {
+  body {
+    padding-bottom: 4.5rem;
+  }
+}
+
+</style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-emerald-500 selection:text-white">
+
+  <!-- TOP STICKY NAVIGATION HEADER -->
+  <header class="sticky top-0 z-40 bg-[#009270] dark:bg-[#065f46] text-white shadow-lg border-b border-emerald-400/20">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-14 sm:h-16 gap-2">
+        <!-- Brand Logo -->
+        <div class="flex items-center gap-2.5 cursor-pointer shrink-0" onclick="switchMainView('home')">
+          <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white text-[#009270] flex items-center justify-center font-black text-lg sm:text-xl shadow-md">
+            YC
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="font-black text-lg sm:text-xl tracking-tight leading-none">YouCrick</span>
+              <span class="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-amber-400 text-slate-950">PLUS</span>
+            </div>
+            <p class="text-[10px] sm:text-xs text-emerald-100 hidden sm:block leading-tight">Live Scores • Hawkeye • Cricbuzz Clone</p>
+          </div>
+        </div>
+
+        <!-- Desktop Primary Navigation Tabs -->
+        <nav class="hidden lg:flex items-center gap-1 text-sm">
+          <button id="nav-home" onclick="switchMainView('home')" class="px-3 py-2 rounded-lg transition nav-tab-active">Live & Home</button>
+          <button id="nav-matchcenter" onclick="switchMainView('matchcenter')" class="px-3 py-2 rounded-lg transition hover:bg-white/10">Match Center</button>
+          <button id="nav-schedule" onclick="switchMainView('schedule')" class="px-3 py-2 rounded-lg transition hover:bg-white/10">Series & Standings</button>
+          <button id="nav-stats" onclick="switchMainView('stats')" class="px-3 py-2 rounded-lg transition hover:bg-white/10">Stats & H2H</button>
+          <button id="nav-rankings" onclick="switchMainView('rankings')" class="px-3 py-2 rounded-lg transition hover:bg-white/10">ICC Rankings</button>
+          <button id="nav-news" onclick="switchMainView('news')" class="px-3 py-2 rounded-lg transition hover:bg-white/10">Editorials</button>
+          <button id="nav-fanzone" onclick="switchMainView('fanzone')" class="px-3 py-2 rounded-lg transition hover:bg-white/10 flex items-center gap-1">
+            <span>DRS & Fan Lab</span>
+          </button>
+        </nav>
+
+        <!-- Right Global Controls (Search, Live Sim, Audio, Theme, Mobile Menu) -->
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <!-- Search Trigger -->
+          <button onclick="openSearchModal()" class="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg bg-black/20 hover:bg-black/30 text-xs sm:text-sm font-medium transition" title="Quick Search">
+            <span>🔍</span>
+            <span class="hidden sm:inline">Search</span>
+            <kbd class="hidden md:inline-block text-[10px] bg-white/15 px-1.5 py-0.5 rounded">⌘K</kbd>
+          </button>
+
+          <!-- Auto-Sim Live Toggle -->
+          <button id="btn-autosim" onclick="toggleAutoSim()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold transition shadow-sm" title="Simulate Live Cricket Deliveries">
+            <span id="autosim-dot" class="w-2 h-2 rounded-full bg-slate-900"></span>
+            <span id="autosim-label">Sim Live</span>
+          </button>
+
+          <!-- Audio SFX Toggle -->
+          <button id="btn-audio" onclick="toggleAudioMute()" class="p-2 rounded-lg bg-black/20 hover:bg-black/30 text-xs transition" title="Toggle Stadium Audio Effects">
+            <span id="audio-icon">🔊</span>
+          </button>
+
+          <!-- Dark/Light Theme Toggle -->
+          <button id="btn-theme" onclick="toggleTheme()" class="p-2 rounded-lg bg-black/20 hover:bg-black/30 text-xs transition" title="Switch Dark/Light Mode">
+            <span id="theme-icon">☀️</span>
+          </button>
+
+          <!-- Mobile Drawer Button -->
+          <button onclick="toggleMobileDrawer()" class="lg:hidden p-2 rounded-lg bg-black/20 hover:bg-black/30 text-sm font-bold" aria-label="Open menu">
+            ☰
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Slide-Down Navigation Menu -->
+    <div id="mobile-drawer" class="hidden lg:hidden bg-[#007358] dark:bg-[#054a37] border-t border-white/15 px-4 py-3 space-y-2">
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs font-semibold">
+        <button onclick="switchMainView('home'); toggleMobileDrawer(false)" class="p-2.5 rounded-lg bg-white/10 text-left">🏏 Live & Home</button>
+        <button onclick="switchMainView('matchcenter'); toggleMobileDrawer(false)" class="p-2.5 rounded-lg bg-white/10 text-left">📊 Match Center</button>
+        <button onclick="switchMainView('schedule'); toggleMobileDrawer(false)" class="p-2.5 rounded-lg bg-white/10 text-left">📅 Series & Tables</button>
+        <button onclick="switchMainView('stats'); toggleMobileDrawer(false)" class="p-2.5 rounded-lg bg-white/10 text-left">⚔️ Player H2H</button>
+        <button onclick="switchMainView('rankings'); toggleMobileDrawer(false)" class="p-2.5 rounded-lg bg-white/10 text-left">🏆 ICC Rankings</button>
+        <button onclick="switchMainView('news'); toggleMobileDrawer(false)" class="p-2.5 rounded-lg bg-white/10 text-left">📰 Editorials</button>
+        <button onclick="switchMainView('fanzone'); toggleMobileDrawer(false)" class="p-2.5 rounded-lg bg-amber-400 text-slate-950 font-bold text-left col-span-2 sm:col-span-1">🎯 DRS & DLS Lab</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CRICBUZZ SIGNATURE TOP LIVE MATCH TICKER STRIP -->
+  <section class="bg-slate-900 text-white border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3">
+      <!-- Category Filter Pills & Scroll Arrows -->
+      <div class="flex items-center justify-between gap-2 mb-2.5">
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5" id="ticker-filters">
+          <button onclick="filterTicker('ALL')" data-cat="ALL" class="ticker-cat-btn px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white shrink-0">MATCHES (6)</button>
+          <button onclick="filterTicker('LIVE')" data-cat="LIVE" class="ticker-cat-btn px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 shrink-0">🔴 Live Now</button>
+          <button onclick="filterTicker('International')" data-cat="International" class="ticker-cat-btn px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 shrink-0">🌍 International</button>
+          <button onclick="filterTicker('T20 Leagues')" data-cat="T20 Leagues" class="ticker-cat-btn px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 shrink-0">🔥 IPL 2026</button>
+          <button onclick="filterTicker('Women')" data-cat="Women" class="ticker-cat-btn px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 shrink-0">👑 Women</button>
+          <button onclick="filterTicker('Domestic')" data-cat="Domestic" class="ticker-cat-btn px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 shrink-0">🛡️ Ranji Trophy</button>
+        </div>
+        <div class="hidden sm:flex items-center gap-1 shrink-0">
+          <button onclick="scrollTicker(-320)" class="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-xs" aria-label="Scroll left">◀</button>
+          <button onclick="scrollTicker(320)" class="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-xs" aria-label="Scroll right">▶</button>
+        </div>
+      </div>
+
+      <!-- Horizontal Match Cards Strip -->
+      <div id="live-ticker-strip" class="flex items-stretch gap-3 overflow-x-auto thin-scrollbar pb-1"></div>
+    </div>
+  </section>
+
+  <!-- MAIN APPLICATION CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-5 space-y-6">
+
+    <!-- ==================== VIEW 1: HOME & DASHBOARD ==================== -->
+    <div id="view-home" class="space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left/Center Column (8 cols): Featured Match Spotlight + Quick Commentary -->
+        <div class="lg:col-span-8 space-y-5">
+          <!-- Featured Match Hero Card -->
+          <div id="home-featured-match" class="yc-card p-4 sm:p-6 shadow-sm"></div>
+
+          <!-- Top Cricket Stories Grid -->
+          <div class="yc-card p-4 sm:p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h2 class="text-base sm:text-lg font-extrabold tracking-tight">Top Cricket Stories & Tactical Desk</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400">In-depth match reports, Hawkeye breakdowns & YouCrick Plus editorials</p>
+              </div>
+              <button onclick="switchMainView('news')" class="text-xs font-bold text-[#009270] dark:text-emerald-400 hover:underline">View All →</button>
+            </div>
+            <div id="home-news-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+          </div>
+        </div>
+
+        <!-- Right Sidebar Column (4 cols): Quick Standings, Fan Poll, Mini Tools -->
+        <div class="lg:col-span-4 space-y-5">
+          <!-- Instant Ball Simulator Controller Card -->
+          <div class="yc-card p-4 sm:p-5 bg-gradient-to-br from-emerald-950/90 to-slate-900 text-white border-emerald-500/30">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[11px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">Interactive Engine</span>
+              <span class="text-xs text-emerald-200" id="sim-match-indicator">Active: IND vs AUS</span>
+            </div>
+            <h3 class="font-bold text-sm sm:text-base mb-1">Bowl Next Delivery Live</h3>
+            <p class="text-xs text-slate-300 mb-3">Trigger specific outcomes on the active match and watch the scorecard, commentary, and win probability react in real time.</p>
+            <div class="grid grid-cols-6 gap-1.5">
+              <button onclick="simulateManualBall(0)" class="py-2 rounded-lg bg-slate-800 hover:bg-slate-700 font-bold text-xs transition">0</button>
+              <button onclick="simulateManualBall(1)" class="py-2 rounded-lg bg-blue-900/70 hover:bg-blue-800 font-bold text-xs transition">1</button>
+              <button onclick="simulateManualBall(2)" class="py-2 rounded-lg bg-blue-900/70 hover:bg-blue-800 font-bold text-xs transition">2</button>
+              <button onclick="simulateManualBall(4)" class="py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 font-bold text-xs transition">4</button>
+              <button onclick="simulateManualBall(6)" class="py-2 rounded-lg bg-purple-600 hover:bg-purple-500 font-bold text-xs transition">6</button>
+              <button onclick="simulateManualBall('W')" class="py-2 rounded-lg bg-red-600 hover:bg-red-500 font-bold text-xs transition">W</button>
+            </div>
+          </div>
+
+          <!-- Quick Standings Snapshot -->
+          <div class="yc-card p-4 sm:p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-extrabold text-sm sm:text-base">IPL 2026 Points Table</h3>
+              <button onclick="switchMainView('schedule')" class="text-xs font-bold text-[#009270] dark:text-emerald-400 hover:underline">Full Table</button>
+            </div>
+            <div id="home-mini-standings" class="responsive-table-wrap"></div>
+          </div>
+
+          <!-- Live Fan Poll -->
+          <div class="yc-card p-4 sm:p-5">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-amber-500">📊 Live Fan Pulse</span>
+              <span id="poll-total-votes" class="text-xs text-slate-500 dark:text-slate-400">48,920 votes</span>
+            </div>
+            <h3 class="font-bold text-sm mb-3">Who wins the 1st Border-Gavaskar Test at the MCG?</h3>
+            <div id="poll-options" class="space-y-2"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== VIEW 2: FULL LIVE MATCH CENTER ==================== -->
+    <div id="view-matchcenter" class="hidden space-y-5">
+      <!-- Match Selector Bar + Match Header Banner -->
+      <div class="yc-card p-4 sm:p-6">
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-4 border-b border-slate-200 dark:border-slate-800">
+          <div class="flex items-center gap-2 flex-wrap" id="mc-match-selector"></div>
+          <div class="flex items-center gap-2">
+            <button onclick="simulateManualBall('RANDOM')" class="px-3 py-1.5 rounded-lg bg-[#009270] hover:bg-[#007358] text-white text-xs font-bold transition shadow-sm">⚡ Bowl Next Ball</button>
+          </div>
+        </div>
+
+        <!-- Active Match Scoreboard Header -->
+        <div id="mc-header-content"></div>
+
+        <!-- 6 Sub-Tabs for Match Center -->
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-4 mt-4 border-t border-slate-200 dark:border-slate-800">
+          <button onclick="switchMatchSubTab('commentary')" id="mctab-commentary" class="mc-subtab-btn subtab-active px-3.5 py-2 rounded-lg text-xs sm:text-sm border border-slate-300 dark:border-slate-700 shrink-0 transition">🎙️ Live Commentary</button>
+          <button onclick="switchMatchSubTab('scorecard')" id="mctab-scorecard" class="mc-subtab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm border border-slate-300 dark:border-slate-700 shrink-0 transition">📋 Full Scorecard</button>
+          <button onclick="switchMatchSubTab('analytics')" id="mctab-analytics" class="mc-subtab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm border border-slate-300 dark:border-slate-700 shrink-0 transition">🎯 Wagon Wheel & Pitch Map</button>
+          <button onclick="switchMatchSubTab('squads')" id="mctab-squads" class="mc-subtab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm border border-slate-300 dark:border-slate-700 shrink-0 transition">👥 Playing XI & Bench</button>
+          <button onclick="switchMatchSubTab('info')" id="mctab-info" class="mc-subtab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm border border-slate-300 dark:border-slate-700 shrink-0 transition">🏟️ Match Info & Pitch</button>
+        </div>
+      </div>
+
+      <!-- Sub-Tab 1: Live Ball-by-Ball Commentary -->
+      <div id="mc-panel-commentary" class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div class="lg:col-span-8 yc-card p-4 sm:p-6 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h3 class="font-extrabold text-base">Ball-by-Ball Commentary</h3>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <button onclick="filterCommentary('ALL')" data-cfilter="ALL" class="comm-filter-btn px-2.5 py-1 rounded-md text-xs font-bold bg-[#009270] text-white">All</button>
+              <button onclick="filterCommentary('four')" data-cfilter="four" class="comm-filter-btn px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-200 dark:bg-slate-800">Fours (4s)</button>
+              <button onclick="filterCommentary('six')" data-cfilter="six" class="comm-filter-btn px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-200 dark:bg-slate-800">Sixes (6s)</button>
+              <button onclick="filterCommentary('wicket')" data-cfilter="wicket" class="comm-filter-btn px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-200 dark:bg-slate-800">Wickets (W)</button>
+              <button onclick="filterCommentary('milestone')" data-cfilter="milestone" class="comm-filter-btn px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-200 dark:bg-slate-800">Milestones</button>
+            </div>
+          </div>
+          <div id="mc-commentary-list" class="space-y-3"></div>
+        </div>
+        <div class="lg:col-span-4 space-y-4">
+          <div id="mc-mini-crease" class="yc-card p-4 sm:p-5"></div>
+          <div id="mc-win-prob-card" class="yc-card p-4 sm:p-5"></div>
+        </div>
+      </div>
+
+      <!-- Sub-Tab 2: Full Innings Scorecard -->
+      <div id="mc-panel-scorecard" class="hidden space-y-5">
+        <div id="mc-scorecard-container" class="space-y-5"></div>
+      </div>
+
+      <!-- Sub-Tab 3: Wagon Wheel, Pitch Map & Manhattan Charts -->
+      <div id="mc-panel-analytics" class="hidden space-y-5">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <!-- 360 Wagon Wheel -->
+          <div class="yc-card p-4 sm:p-6">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <div>
+                <h3 class="font-extrabold text-base">360° Interactive Wagon Wheel</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Shot zones, boundary trajectories & scoring arcs</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <select id="ww-batter-select" onchange="drawWagonWheel()" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700">
+                  <option value="ALL">All Batters</option>
+                  <option value="Yashasvi Jaiswal">Yashasvi Jaiswal</option>
+                  <option value="Rishabh Pant">Rishabh Pant</option>
+                  <option value="Suryakumar Yadav">Suryakumar Yadav</option>
+                </select>
+                <select id="ww-runs-select" onchange="drawWagonWheel()" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700">
+                  <option value="ALL">All Runs</option>
+                  <option value="4">Only 4s</option>
+                  <option value="6">Only 6s</option>
+                </select>
+              </div>
+            </div>
+            <div class="canvas-viz-container">
+              <canvas id="wagon-wheel-canvas" width="380" height="380" class="viz-canvas"></canvas>
+            </div>
+            <div class="flex items-center justify-center gap-4 mt-3 text-xs font-semibold">
+              <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-purple-500 inline-block"></span> Sixes (6s)</span>
+              <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> Fours (4s)</span>
+              <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-400 inline-block"></span> 1s / 2s / 3s</span>
+            </div>
+          </div>
+
+          <!-- Hawkeye Pitch Beehive Map -->
+          <div class="yc-card p-4 sm:p-6">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <div>
+                <h3 class="font-extrabold text-base">Hawkeye Pitch Map & Length Matrix</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Ball pitching zones: Yorker, Full, Good & Short</p>
+              </div>
+              <select id="pm-length-select" onchange="drawPitchMap()" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700">
+                <option value="ALL">All Lengths</option>
+                <option value="Yorker">Yorker</option>
+                <option value="Full">Full</option>
+                <option value="Good">Good Length</option>
+                <option value="Short">Short / Bouncer</option>
+              </select>
+            </div>
+            <div class="canvas-viz-container">
+              <canvas id="pitch-map-canvas" width="380" height="380" class="viz-canvas"></canvas>
+            </div>
+            <div class="flex items-center justify-center gap-4 mt-3 text-xs font-semibold">
+              <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span> Wicket</span>
+              <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> Boundary (4/6)</span>
+              <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> Dot / Single</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Over-by-Over Worm & Manhattan Chart -->
+        <div class="yc-card p-4 sm:p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-extrabold text-base">Innings Progression & Over-by-Over Run Rate</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Comparative scoring trajectory across both teams</p>
+            </div>
+          </div>
+          <div class="relative h-72 w-full">
+            <canvas id="manhattan-chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sub-Tab 4: Squads -->
+      <div id="mc-panel-squads" class="hidden yc-card p-4 sm:p-6">
+        <div id="mc-squads-content" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+      </div>
+
+      <!-- Sub-Tab 5: Match Info, Venue & Weather -->
+      <div id="mc-panel-info" class="hidden yc-card p-4 sm:p-6">
+        <div id="mc-info-content"></div>
+      </div>
+    </div>
+
+    <!-- ==================== VIEW 3: SERIES, SCHEDULE & STANDINGS ==================== -->
+    <div id="view-schedule" class="hidden space-y-6">
+      <div class="yc-card p-4 sm:p-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+          <div>
+            <h2 class="text-lg sm:text-xl font-extrabold">Tournament Standings & Points Tables</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Official WTC 2025-27 Championship & IPL 2026 Standings with Net Run Rate</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="renderSeriesTable('WTC 2025-27')" id="st-btn-wtc" class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#009270] text-white">ICC WTC 2025-27</button>
+            <button onclick="renderSeriesTable('IPL 2026')" id="st-btn-ipl" class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-slate-200 dark:bg-slate-800">IPL 2026</button>
+          </div>
+        </div>
+        <div id="series-standings-table" class="responsive-table-wrap"></div>
+      </div>
+
+      <div class="yc-card p-4 sm:p-6">
+        <h3 class="text-base sm:text-lg font-extrabold mb-4">All Fixtures & Live Match Center Directory</h3>
+        <div id="schedule-fixtures-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+      </div>
+    </div>
+
+    <!-- ==================== VIEW 4: STATS & HEAD-TO-HEAD COMPARATOR ==================== -->
+    <div id="view-stats" class="hidden space-y-6">
+      <div class="yc-card p-4 sm:p-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+          <div>
+            <h2 class="text-lg sm:text-xl font-extrabold">Player Head-to-Head Stats Comparator</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Compare career metrics across Test, ODI, T20I & IPL formats</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <select id="h2h-p1" onchange="renderH2HComparison()" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700"></select>
+            <span class="text-xs font-black text-emerald-500">VS</span>
+            <select id="h2h-p2" onchange="renderH2HComparison()" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700"></select>
+            <select id="h2h-format" onchange="renderH2HComparison()" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#009270] text-white">
+              <option value="test">Test Cricket</option>
+              <option value="odi">One-Day Internationals (ODI)</option>
+              <option value="t20i">T20 Internationals (T20I)</option>
+              <option value="ipl">Indian Premier League (IPL)</option>
+            </select>
+          </div>
+        </div>
+        <div id="h2h-comparison-output"></div>
+      </div>
+    </div>
+
+    <!-- ==================== VIEW 5: ICC OFFICIAL RANKINGS ==================== -->
+    <div id="view-rankings" class="hidden space-y-6">
+      <div class="yc-card p-4 sm:p-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+          <div>
+            <h2 class="text-lg sm:text-xl font-extrabold">ICC World Cricket Rankings</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Official Men's & Women's Team, Batter, and Bowler Ratings</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <select id="rank-gender" onchange="renderRankings()" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700">
+              <option value="men">Men's Cricket</option>
+              <option value="women">Women's Cricket</option>
+            </select>
+            <select id="rank-format" onchange="renderRankings()" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#009270] text-white">
+              <option value="TEST">TEST</option>
+              <option value="ODI">ODI</option>
+              <option value="T20I">T20I</option>
+            </select>
+          </div>
+        </div>
+        <div id="icc-rankings-grid" class="grid grid-cols-1 md:grid-cols-3 gap-5"></div>
+      </div>
+    </div>
+
+    <!-- ==================== VIEW 6: NEWS & EDITORIALS ==================== -->
+    <div id="view-news" class="hidden space-y-6">
+      <div class="yc-card p-4 sm:p-6">
+        <h2 class="text-lg sm:text-xl font-extrabold mb-1">YouCrick Plus Newsroom & Tactical Editorials</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-5">Click any story to open the full interactive reader</p>
+        <div id="full-news-grid" class="grid grid-cols-1 md:grid-cols-2 gap-5"></div>
+      </div>
+    </div>
+
+    <!-- ==================== VIEW 7: YOUCRICK FAN LAB (DRS SIMULATOR, DLS & DREAM XI) ==================== -->
+    <div id="view-fanzone" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Interactive Hawkeye DRS LBW Ball-Tracker Simulator -->
+        <div class="lg:col-span-7 yc-card p-4 sm:p-6 space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-red-500/20 text-red-400">3rd Umpire Review</span>
+              <h2 class="text-base sm:text-lg font-extrabold mt-1">Interactive DRS Ball-Tracker Simulator</h2>
+            </div>
+            <button onclick="runDrsSimulation()" class="px-4 py-2 rounded-lg bg-[#009270] hover:bg-[#007358] text-white text-xs font-bold shadow">🎬 Trigger DRS Review</button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div>
+              <label class="block text-slate-400 mb-1 font-semibold">Pitching Line</label>
+              <select id="drs-pitching" onchange="runDrsSimulation()" class="w-full p-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 font-semibold">
+                <option value="IN_LINE">Pitching In Line</option>
+                <option value="OUTSIDE_OFF">Pitching Outside Off</option>
+                <option value="OUTSIDE_LEG">Pitching Outside Leg</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1 font-semibold">Pad Impact</label>
+              <select id="drs-impact" onchange="runDrsSimulation()" class="w-full p-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 font-semibold">
+                <option value="IN_LINE">Impact In Line</option>
+                <option value="UMPIRES_CALL">Impact Umpire's Call</option>
+                <option value="OUTSIDE_OFF">Impact Outside Off</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1 font-semibold">Seam / Spin Deviation</label>
+              <select id="drs-spin" onchange="runDrsSimulation()" class="w-full p-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 font-semibold">
+                <option value="HIT_STUMPS">Sharp Nip — Hitting Middle</option>
+                <option value="CLIPPING">Clipping Leg Bail (Umpire's Call)</option>
+                <option value="MISSING">Sliding Past Leg Stump</option>
+              </select>
+            </div>
+          </div>
+          <div class="canvas-viz-container bg-slate-950 rounded-xl p-3 border border-slate-800">
+            <canvas id="drs-canvas" width="520" height="280" class="viz-canvas"></canvas>
+          </div>
+          <div id="drs-verdict-banner" class="p-3 rounded-xl text-center font-black text-sm tracking-wide bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+            DECISION: OUT — THREE REDS! HITTING MIDDLE AND OFF!
+          </div>
+        </div>
+
+        <!-- DLS Rain Par Score Calculator + Dream XI Quick Builder -->
+        <div class="lg:col-span-5 space-y-6">
+          <div class="yc-card p-4 sm:p-6 space-y-3">
+            <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-blue-500/20 text-blue-400">Rain Interruption Tool</span>
+            <h3 class="text-base font-extrabold">DLS Target & Par Score Calculator</h3>
+            <div class="grid grid-cols-2 gap-3 text-xs">
+              <div>
+                <label class="block text-slate-400 mb-1">Team 1 Total (50/20 Ov)</label>
+                <input id="dls-t1-runs" type="number" value="218" oninput="calculateDls()" class="w-full p-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 font-bold" />
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Match Format Overs</label>
+                <select id="dls-max-overs" onchange="calculateDls()" class="w-full p-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 font-bold">
+                  <option value="20">20 Overs (T20)</option>
+                  <option value="50">50 Overs (ODI)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Revised Team 2 Overs</label>
+                <input id="dls-rev-overs" type="number" value="14" min="5" max="50" oninput="calculateDls()" class="w-full p-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 font-bold" />
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Wickets Lost</label>
+                <input id="dls-wickets" type="number" value="2" min="0" max="9" oninput="calculateDls()" class="w-full p-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 font-bold" />
+              </div>
+            </div>
+            <div id="dls-result-box" class="p-3.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-emerald-500/30 text-xs space-y-1"></div>
+          </div>
+
+          <!-- Custom Dream XI Picker -->
+          <div class="yc-card p-4 sm:p-6 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-base font-extrabold">Your YouCrick World XI Squad</h3>
+              <button onclick="copyDreamXI()" class="px-2.5 py-1 rounded bg-[#009270] text-white text-xs font-bold">📋 Copy Squad</button>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Tap players to toggle selection into your custom XI (<span id="xi-count">6</span>/11 selected)</p>
+            <div id="dream-xi-pool" class="flex flex-wrap gap-1.5"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-slate-900 text-slate-400 border-t border-slate-800 mt-10 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-lg bg-[#009270] text-white flex items-center justify-center font-black">YC</div>
+        <span class="font-bold text-white">YouCrick</span>
+        <span>•</span>
+        <span>Netlify-Ready Responsive Cricket Platform</span>
+      </div>
+      <div class="flex flex-wrap items-center gap-4">
+        <button onclick="switchMainView('home')" class="hover:text-white">Live Scores</button>
+        <button onclick="switchMainView('matchcenter')" class="hover:text-white">Match Center</button>
+        <button onclick="switchMainView('rankings')" class="hover:text-white">ICC Rankings</button>
+        <button onclick="switchMainView('fanzone')" class="hover:text-white">DRS Simulator</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- MOBILE FIXED BOTTOM NAVIGATION BAR -->
+  <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-slate-900/95 backdrop-blur border-t border-slate-800 flex items-center justify-around py-2 text-[11px] font-semibold text-slate-300">
+    <button onclick="switchMainView('home')" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+      <span>🏏</span><span>Home</span>
+    </button>
+    <button onclick="switchMainView('matchcenter')" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+      <span>📊</span><span>Match Center</span>
+    </button>
+    <button onclick="switchMainView('schedule')" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+      <span>📅</span><span>Tables</span>
+    </button>
+    <button onclick="switchMainView('rankings')" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+      <span>🏆</span><span>Rankings</span>
+    </button>
+    <button onclick="switchMainView('fanzone')" class="flex flex-col items-center gap-0.5 hover:text-emerald-400">
+      <span>🎯</span><span>DRS Lab</span>
+    </button>
+  </nav>
+
+  <!-- GLOBAL SEARCH MODAL -->
+  <div id="search-modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-start justify-center pt-16 px-4">
+    <div class="yc-card w-full max-w-xl p-4 sm:p-5 shadow-2xl">
+      <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-200 dark:border-slate-800">
+        <input id="global-search-input" type="text" oninput="handleGlobalSearch()" placeholder="Search matches, players (Kohli, Bumrah), teams, or editorials..." class="w-full bg-transparent text-sm sm:text-base font-medium focus:outline-none" />
+        <button onclick="closeSearchModal()" class="px-2.5 py-1 rounded bg-slate-200 dark:bg-slate-800 text-xs font-bold">ESC</button>
+      </div>
+      <div id="global-search-results" class="mt-3 max-h-80 overflow-y-auto space-y-2"></div>
+    </div>
+  </div>
+
+  <!-- EDITORIAL ARTICLE READER MODAL -->
+  <div id="article-modal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="yc-card w-full max-w-2xl max-h-[85vh] overflow-y-auto p-5 sm:p-7 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between">
+        <span id="modal-article-badge" class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400">EDITORIAL</span>
+        <button onclick="closeArticleModal()" class="px-3 py-1 rounded-lg bg-slate-200 dark:bg-slate-800 text-xs font-bold">✕ Close</button>
+      </div>
+      <h2 id="modal-article-title" class="text-lg sm:text-2xl font-black leading-snug"></h2>
+      <div id="modal-article-meta" class="text-xs text-slate-500 dark:text-slate-400"></div>
+      <div id="modal-article-body" class="space-y-3 text-sm leading-relaxed text-slate-700 dark:text-slate-200"></div>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container" class="fixed bottom-16 md:bottom-5 right-4 z-50 space-y-2 pointer-events-none"></div>
+
+  <script>
+// YouCrick — Comprehensive Cricket Dataset (Matches, Scorecards, Commentary, Rankings, Stats, News)
+window.YOUCRICK_DATA = {
+  matches: [
+    {
+      id: "m1",
+      series: "Border-Gavaskar Trophy 2026-27 • 1st Test",
+      category: "International",
+      format: "TEST",
+      status: "LIVE",
+      statusBadge: "DAY 4 • SESSION 3",
+      venue: "Melbourne Cricket Ground (MCG), Melbourne",
+      toss: "India won the toss and elected to bat first",
+      umpires: "Richard Kettleborough (ENG), Nitin Menon (IND) • TV: Chris Gaffaney (NZ)",
+      referee: "Ranjan Madugalle (SL)",
+      weather: { condition: "Partly Cloudy", temp: "22°C", humidity: "54%", rainChance: "10%", wind: "18 km/h SW" },
+      pitchReport: "Firm Melbourne drop-in surface with true bounce. Seam movement with the second new ball; spinners getting sharp turn out of the footmarks on Day 4.",
+      team1: { code: "IND", name: "India", flag: "🇮🇳", score: "384 & 268/4", overs: "74.2", crr: "3.60", winProb: 68 },
+      team2: { code: "AUS", name: "Australia", flag: "🇦🇺", score: "312 & Yet to bat", overs: "96.4", rrr: "—", winProb: 18 },
+      drawProb: 14,
+      summaryText: "India lead by 340 runs with 6 wickets remaining in 2nd Innings",
+      currentPartnership: { runs: 114, balls: 168, p1: "Rishabh Pant 64*(78)", p2: "Yashasvi Jaiswal 118*(204)" },
+      currentBatters: [
+        { name: "Yashasvi Jaiswal", runs: 118, balls: 204, fours: 13, sixes: 2, sr: "57.84", onStrike: true, role: "LHB" },
+        { name: "Rishabh Pant", runs: 64, balls: 78, fours: 7, sixes: 3, sr: "82.05", onStrike: false, role: "LHB • WK" }
+      ],
+      currentBowlers: [
+        { name: "Pat Cummins (c)", overs: "18.2", maidens: 3, runs: 62, wickets: 2, econ: "3.38", current: true },
+        { name: "Nathan Lyon", overs: "24.0", maidens: 4, runs: 76, wickets: 1, econ: "3.17", current: false }
+      ],
+      recentBalls: ["0", "4", "0", "1", "6", "0", "2", "0", "4", "1", "0", "1"],
+      headToHead: { t1Wins: 33, t2Wins: 45, draws: 29, last5: ["IND", "AUS", "IND", "DRAW", "IND"] },
+      manhattan1: [18, 29, 34, 42, 38, 49, 55, 44, 62, 51, 68, 72, 48, 59, 64, 52, 47, 61, 58, 70],
+      manhattan2: [22, 35, 41, 48, 52, 60, 58, 67, 74, 81, 69, 77, 84, 79, 92, 88, 95, 102, 110, 118],
+      innings: [
+        {
+          title: "India 2nd Innings",
+          shortTitle: "IND 2nd Inn",
+          total: "268/4 (74.2 Ov)",
+          extras: "14 (b 4, lb 5, w 2, nb 3)",
+          fow: "1-24 (KL Rahul, 8.2 ov), 2-78 (Shubman Gill, 24.5 ov), 3-142 (Virat Kohli, 46.1 ov), 4-154 (Ravindra Jadeja, 49.4 ov)",
+          dnb: "Nitish Kumar Reddy, Washington Sundar, Jasprit Bumrah, Mohammed Siraj, Akash Deep",
+          batters: [
+            { name: "Yashasvi Jaiswal", dismissal: "not out", r: 118, b: 204, fours: 13, sixes: 2, sr: "57.84", active: true },
+            { name: "KL Rahul", dismissal: "c Carey b Starc", r: 12, b: 29, fours: 2, sixes: 0, sr: "41.38" },
+            { name: "Shubman Gill", dismissal: "lbw b Boland", r: 28, b: 54, fours: 4, sixes: 0, sr: "51.85" },
+            { name: "Virat Kohli", dismissal: "c Smith b Cummins", r: 31, b: 68, fours: 3, sixes: 0, sr: "45.59" },
+            { name: "Ravindra Jadeja", dismissal: "c Labuschagne b Lyon", r: 1, b: 11, fours: 0, sixes: 0, sr: "9.09" },
+            { name: "Rishabh Pant (wk)", dismissal: "not out", r: 64, b: 78, fours: 7, sixes: 3, sr: "82.05", active: true }
+          ],
+          bowlers: [
+            { name: "Mitchell Starc", o: "16.0", m: 2, r: 68, w: 1, nb: 1, wd: 1, eco: "4.25" },
+            { name: "Pat Cummins (c)", o: "18.2", m: 3, r: 62, w: 2, nb: 2, wd: 0, eco: "3.38" },
+            { name: "Scott Boland", o: "16.0", m: 4, r: 53, w: 0, nb: 0, wd: 1, eco: "3.31" },
+            { name: "Nathan Lyon", o: "24.0", m: 4, r: 76, w: 1, nb: 0, wd: 0, eco: "3.17" }
+          ]
+        },
+        {
+          title: "Australia 1st Innings",
+          shortTitle: "AUS 1st Inn",
+          total: "312/10 (96.4 Ov)",
+          extras: "11 (b 2, lb 4, w 1, nb 4)",
+          fow: "1-38 (Khawaja), 2-89 (McSweeney), 3-145 (Labuschagne), 4-238 (Smith), 5-274 (Head)",
+          dnb: "None",
+          batters: [
+            { name: "Usman Khawaja", dismissal: "c Pant b Bumrah", r: 19, b: 51, fours: 2, sixes: 0, sr: "37.25" },
+            { name: "Sam Konstas", dismissal: "b Siraj", r: 44, b: 62, fours: 6, sixes: 1, sr: "70.97" },
+            { name: "Marnus Labuschagne", dismissal: "lbw b Jadeja", r: 52, b: 134, fours: 5, sixes: 0, sr: "38.81" },
+            { name: "Steven Smith", dismissal: "c Rahul b Bumrah", r: 104, b: 198, fours: 11, sixes: 1, sr: "52.53" },
+            { name: "Travis Head", dismissal: "b Bumrah", r: 41, b: 48, fours: 6, sixes: 1, sr: "85.42" },
+            { name: "Alex Carey (wk)", dismissal: "not out", r: 31, b: 64, fours: 3, sixes: 0, sr: "48.44" }
+          ],
+          bowlers: [
+            { name: "Jasprit Bumrah (c)", o: "26.4", m: 8, r: 64, w: 5, nb: 2, wd: 0, eco: "2.40" },
+            { name: "Mohammed Siraj", o: "22.0", m: 3, r: 79, w: 2, nb: 1, wd: 1, eco: "3.59" },
+            { name: "Akash Deep", o: "20.0", m: 4, r: 68, w: 1, nb: 1, wd: 0, eco: "3.40" },
+            { name: "Ravindra Jadeja", o: "28.0", m: 5, r: 95, w: 2, nb: 0, wd: 0, eco: "3.39" }
+          ]
+        }
+      ],
+      commentary: [
+        { over: "74.2", ball: "1", type: "run", batter: "Jaiswal", bowler: "Cummins", text: "Cummins bangs it in short of a length outside off, Jaiswal rides the bounce and steers it past gully for a brisk single." },
+        { over: "74.1", ball: "0", type: "dot", batter: "Jaiswal", bowler: "Cummins", text: "Full and angling across off stump at 141.6 kph, Jaiswal watches it closely and shoulders arms." },
+        { over: "73.6", ball: "4", type: "four", batter: "Pant", bowler: "Lyon", text: "FOUR! Audacious from Rishabh Pant! Steps down the track to Nathan Lyon and whips it against the spin through midwicket for a scorching boundary!" },
+        { over: "73.5", ball: "1", type: "milestone", batter: "Jaiswal", bowler: "Lyon", text: "MILESTONE! Jaiswal tucks it off his pads to deep square leg. The 100-run partnership between Jaiswal and Pant comes up in just 146 balls!" },
+        { over: "73.4", ball: "6", type: "six", batter: "Pant", bowler: "Lyon", text: "SIX! One-handed maximum! Pant gets down on one knee and slog-sweeps Lyon 88 meters into the second tier at deep midwicket!" },
+        { over: "72.3", ball: "4", type: "four", batter: "Jaiswal", bowler: "Cummins", text: "FOUR! Glorious cover drive! Overpitched by a fraction and Jaiswal leans into it, threading the gap between cover and mid-off." },
+        { over: "49.4", ball: "W", type: "wicket", batter: "Jadeja", bowler: "Lyon", text: "OUT! Caught at silly point! Lyon gets one to spit out of the rough, kisses the inside shoulder of Jadeja's bat and Labuschagne takes a sharp reflex catch!" }
+      ],
+      squads: {
+        t1Playing: ["Yashasvi Jaiswal", "KL Rahul", "Shubman Gill", "Virat Kohli", "Rishabh Pant (wk)", "Ravindra Jadeja", "Nitish Kumar Reddy", "Washington Sundar", "Jasprit Bumrah (c)", "Mohammed Siraj", "Akash Deep"],
+        t1Bench: ["Dhruv Jurel", "Sarfaraz Khan", "Prasidh Krishna", "Harshit Rana"],
+        t2Playing: ["Usman Khawaja", "Sam Konstas", "Marnus Labuschagne", "Steven Smith", "Travis Head", "Mitchell Marsh", "Alex Carey (wk)", "Pat Cummins (c)", "Mitchell Starc", "Nathan Lyon", "Scott Boland"],
+        t2Bench: ["Josh Inglis", "Beau Webster", "Sean Abbott", "Jhye Richardson"]
+      }
+    },
+    {
+      id: "m2",
+      series: "Indian Premier League 2026 • Match 42",
+      category: "T20 Leagues",
+      format: "T20",
+      status: "LIVE",
+      statusBadge: "LIVE • CHASE ON",
+      venue: "Wankhede Stadium, Mumbai",
+      toss: "Mumbai Indians won the toss and elected to field",
+      umpires: "Anil Chaudhary, KN Ananthapadmanabhan • TV: Virender Sharma",
+      referee: "Javagal Srinath",
+      weather: { condition: "Clear & Humid", temp: "29°C", humidity: "72%", rainChance: "0%", wind: "14 km/h W" },
+      pitchReport: "Classic red-soil Wankhede belter! Evening dew makes chasing advantageous; par score is 215+.",
+      team1: { code: "CSK", name: "Chennai Super Kings", flag: "🦁", score: "218/5", overs: "20.0", crr: "10.90", winProb: 44 },
+      team2: { code: "MI", name: "Mumbai Indians", flag: "🌀", score: "184/4", overs: "17.2", crr: "10.61", rrr: "13.12", winProb: 56 },
+      drawProb: 0,
+      summaryText: "Mumbai Indians need 35 runs in 16 balls (RRR: 13.12)",
+      currentPartnership: { runs: 68, balls: 33, p1: "Suryakumar Yadav 79*(39)", p2: "Hardik Pandya 28*(14)" },
+      currentBatters: [
+        { name: "Suryakumar Yadav", runs: 79, balls: 39, fours: 7, sixes: 5, sr: "202.56", onStrike: true, role: "RHB" },
+        { name: "Hardik Pandya (c)", runs: 28, balls: 14, fours: 2, sixes: 2, sr: "200.00", onStrike: false, role: "RHB • All-rounder" }
+      ],
+      currentBowlers: [
+        { name: "Matheesha Pathirana", overs: "3.2", maidens: 0, runs: 31, wickets: 2, econ: "9.30", current: true },
+        { name: "Ravindra Jadeja", overs: "4.0", maidens: 0, runs: 38, wickets: 1, econ: "9.50", current: false }
+      ],
+      recentBalls: ["6", "4", "1", "W", "0", "4", "2", "6", "1", "4", "1", "6"],
+      headToHead: { t1Wins: 18, t2Wins: 21, draws: 0, last5: ["CSK", "CSK", "MI", "CSK", "MI"] },
+      manhattan1: [11, 14, 9, 16, 12, 15, 8, 11, 13, 10, 14, 9, 12, 15, 7, 13, 18, 16, 14, 19],
+      manhattan2: [13, 10, 15, 12, 18, 9, 11, 14, 8, 12, 16, 10, 11, 15, 13, 17, 19, 18, 0, 0],
+      innings: [
+        {
+          title: "Mumbai Indians Innings (Target: 219)",
+          shortTitle: "MI Inn",
+          total: "184/4 (17.2 Ov)",
+          extras: "8 (lb 2, w 5, nb 1)",
+          fow: "1-42 (Ishan Kishan, 4.1 ov), 2-76 (Rohit Sharma, 7.5 ov), 3-108 (Tilak Varma, 11.4 ov), 4-116 (Tim David, 12.5 ov)",
+          dnb: "Naman Dhir, Mitchell Santner, Jasprit Bumrah, Trent Boult, Deepak Chahar",
+          batters: [
+            { name: "Rohit Sharma", dismissal: "c Gaikwad b Pathirana", r: 44, b: 25, fours: 5, sixes: 3, sr: "176.00" },
+            { name: "Ishan Kishan (wk)", dismissal: "b Deshpande", r: 21, b: 14, fours: 3, sixes: 1, sr: "150.00" },
+            { name: "Suryakumar Yadav", dismissal: "not out", r: 79, b: 39, fours: 7, sixes: 5, sr: "202.56", active: true },
+            { name: "Tilak Varma", dismissal: "st Dhoni b Jadeja", r: 19, b: 13, fours: 2, sixes: 1, sr: "146.15" },
+            { name: "Hardik Pandya (c)", dismissal: "not out", r: 28, b: 14, fours: 2, sixes: 2, sr: "200.00", active: true }
+          ],
+          bowlers: [
+            { name: "Khaleel Ahmed", o: "3.0", m: 0, r: 36, w: 0, nb: 0, wd: 2, eco: "12.00" },
+            { name: "Ravindra Jadeja", o: "4.0", m: 0, r: 38, w: 1, nb: 0, wd: 0, eco: "9.50" },
+            { name: "Noor Ahmad", o: "4.0", m: 0, r: 34, w: 1, nb: 0, wd: 1, eco: "8.50" },
+            { name: "Matheesha Pathirana", o: "3.2", m: 0, r: 31, w: 2, nb: 1, wd: 2, eco: "9.30" }
+          ]
+        },
+        {
+          title: "Chennai Super Kings Innings",
+          shortTitle: "CSK Inn",
+          total: "218/5 (20.0 Ov)",
+          extras: "9 (lb 3, w 5, nb 1)",
+          fow: "1-54 (Conway), 2-132 (Gaikwad), 3-178 (Dube), 4-196 (Jadeja)",
+          dnb: "Ravichandran Ashwin, Noor Ahmad, Matheesha Pathirana, Khaleel Ahmed",
+          batters: [
+            { name: "Ruturaj Gaikwad (c)", dismissal: "c Tilak b Bumrah", r: 78, b: 46, fours: 8, sixes: 4, sr: "169.57" },
+            { name: "Devon Conway", dismissal: "b Boult", r: 29, b: 19, fours: 4, sixes: 1, sr: "152.63" },
+            { name: "Shivam Dube", dismissal: "c Sky b Pandya", r: 58, b: 27, fours: 3, sixes: 6, sr: "214.81" },
+            { name: "MS Dhoni (wk)", dismissal: "not out", r: 26, b: 9, fours: 2, sixes: 3, sr: "288.89" }
+          ],
+          bowlers: [
+            { name: "Trent Boult", o: "4.0", m: 0, r: 44, w: 1, nb: 0, wd: 2, eco: "11.00" },
+            { name: "Jasprit Bumrah", o: "4.0", m: 0, r: 28, w: 2, nb: 1, wd: 0, eco: "7.00" },
+            { name: "Hardik Pandya (c)", o: "4.0", m: 0, r: 49, w: 1, nb: 0, wd: 2, eco: "12.25" },
+            { name: "Mitchell Santner", o: "4.0", m: 0, r: 36, w: 1, nb: 0, wd: 1, eco: "9.00" }
+          ]
+        }
+      ],
+      commentary: [
+        { over: "17.2", ball: "6", type: "six", batter: "Suryakumar", bowler: "Pathirana", text: "SIX! Vintage 360° SKY! Sits deep in the crease to a 148 kph yorker and ramps it over fine leg into the Wankhede roar!" },
+        { over: "17.1", ball: "1", type: "run", batter: "Hardik", bowler: "Pathirana", text: "Slingy low full toss on leg stump, Hardik drills it to long-on for a single to bring SKY back on strike." },
+        { over: "16.6", ball: "4", type: "four", batter: "Suryakumar", bowler: "Noor Ahmad", text: "FOUR! Inside-out over extra cover! Suryakumar reads the wrong'un from the hand and carves it away." },
+        { over: "12.5", ball: "W", type: "wicket", batter: "Tim David", bowler: "Pathirana", text: "OUT! Castled by a 150.4 kph toe-crusher! Pathirana nails the base of middle stump!" }
+      ],
+      squads: {
+        t1Playing: ["Ruturaj Gaikwad (c)", "Devon Conway", "Rachin Ravindra", "Shivam Dube", "Ravindra Jadeja", "Sam Curran", "MS Dhoni (wk)", "Ravichandran Ashwin", "Noor Ahmad", "Matheesha Pathirana", "Khaleel Ahmed"],
+        t1Bench: ["Rahul Tripathi", "Vijay Shankar", "Deepak Hooda", "Anshul Kamboj"],
+        t2Playing: ["Rohit Sharma", "Ishan Kishan (wk)", "Suryakumar Yadav", "Tilak Varma", "Hardik Pandya (c)", "Tim David", "Naman Dhir", "Mitchell Santner", "Jasprit Bumrah", "Trent Boult", "Deepak Chahar"],
+        t2Bench: ["Will Jacks", "Robin Minz", "Karn Sharma", "Reece Topley"]
+      }
+    },
+    {
+      id: "m3",
+      series: "England vs South Africa ODI Series 2026 • 2nd ODI",
+      category: "International",
+      format: "ODI",
+      status: "LIVE",
+      statusBadge: "LIVE • INNINGS 2",
+      venue: "Lord's Cricket Ground, London",
+      toss: "South Africa won the toss and elected to bat",
+      umpires: "Michael Gough, Adrian Holdstock",
+      referee: "Jeff Crowe",
+      weather: { condition: "Overcast", temp: "16°C", humidity: "68%", rainChance: "20%", wind: "21 km/h NW" },
+      pitchReport: "Good carry and nibble off the Lord's slope; batters well set can score briskly square of the wicket.",
+      team1: { code: "RSA", name: "South Africa", flag: "🇿🇦", score: "316/6", overs: "50.0", crr: "6.32", winProb: 52 },
+      team2: { code: "ENG", name: "England", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", score: "212/3", overs: "34.0", crr: "6.23", rrr: "6.56", winProb: 48 },
+      drawProb: 0,
+      summaryText: "England need 105 runs in 96 balls (RRR: 6.56)",
+      currentPartnership: { runs: 89, balls: 78, p1: "Joe Root 74*(82)", p2: "Harry Brook 52*(46)" },
+      currentBatters: [
+        { name: "Joe Root", runs: 74, balls: 82, fours: 7, sixes: 1, sr: "90.24", onStrike: true, role: "RHB" },
+        { name: "Harry Brook", runs: 52, balls: 46, fours: 5, sixes: 2, sr: "113.04", onStrike: false, role: "RHB" }
+      ],
+      currentBowlers: [
+        { name: "Kagiso Rabada", overs: "7.0", maidens: 0, runs: 41, wickets: 2, econ: "5.86", current: true },
+        { name: "Keshav Maharaj", overs: "8.0", maidens: 1, runs: 44, wickets: 1, econ: "5.50", current: false }
+      ],
+      recentBalls: ["1", "0", "4", "1", "2", "0", "1", "1", "4", "0", "1", "2"],
+      headToHead: { t1Wins: 35, t2Wins: 30, draws: 1, last5: ["RSA", "ENG", "RSA", "RSA", "ENG"] },
+      manhattan1: [24, 31, 28, 35, 30, 38, 29, 34, 42, 49],
+      manhattan2: [28, 33, 27, 36, 31, 35, 22, 0, 0, 0],
+      innings: [],
+      commentary: [
+        { over: "34.0", ball: "2", type: "run", batter: "Root", bowler: "Rabada", text: "Root opens the face of the bat and glides it down to third man for a comfortable brace." },
+        { over: "33.4", ball: "4", type: "four", batter: "Brook", bowler: "Rabada", text: "FOUR! Stand and deliver! Brook climbs into a short-of-length delivery and pulls it fiercely in front of square!" }
+      ],
+      squads: {
+        t1Playing: ["Temba Bavuma (c)", "Ryan Rickelton", "Aiden Markram", "Heinrich Klaasen (wk)", "Tristan Stubbs", "David Miller", "Marco Jansen", "Keshav Maharaj", "Kagiso Rabada", "Anrich Nortje", "Lungi Ngidi"],
+        t1Bench: ["Tony de Zorzi", "Wiaan Mulder", "Tabraiz Shamsi"],
+        t2Playing: ["Phil Salt", "Ben Duckett", "Joe Root", "Harry Brook", "Jos Buttler (c & wk)", "Liam Livingstone", "Sam Curran", "Jofra Archer", "Adil Rashid", "Mark Wood", "Gus Atkinson"],
+        t2Bench: ["Will Jacks", "Jamie Smith", "Reece Topley"]
+      }
+    },
+    {
+      id: "m4",
+      series: "ICC Women's T20 Tri-Series 2026 • Final",
+      category: "Women",
+      format: "WT20I",
+      status: "RESULT",
+      statusBadge: "RESULT • IND-W WON",
+      venue: "Eden Gardens, Kolkata",
+      toss: "India Women won the toss and elected to bat",
+      umpires: "Claire Polosak, Vrinda Rathi",
+      referee: "GS Lakshmi",
+      weather: { condition: "Pleasant Evening", temp: "26°C", humidity: "60%", rainChance: "0%", wind: "10 km/h S" },
+      pitchReport: "Fast outfield at Eden Gardens with grip for finger spinners under lights.",
+      team1: { code: "IND-W", name: "India Women", flag: "🇮🇳", score: "176/4", overs: "20.0", crr: "8.80", winProb: 100 },
+      team2: { code: "AUS-W", name: "Australia Women", flag: "🇦🇺", score: "162/8", overs: "20.0", crr: "8.10", rrr: "—", winProb: 0 },
+      drawProb: 0,
+      summaryText: "India Women beat Australia Women by 14 runs to lift the Tri-Series Trophy",
+      currentPartnership: { runs: 42, balls: 24, p1: "Smriti Mandhana 84(51)", p2: "Harmanpreet Kaur 46*(28)" },
+      currentBatters: [
+        { name: "Smriti Mandhana", runs: 84, balls: 51, fours: 11, sixes: 3, sr: "164.71", onStrike: true, role: "LHB" },
+        { name: "Harmanpreet Kaur (c)", runs: 46, balls: 28, fours: 5, sixes: 2, sr: "164.29", onStrike: false, role: "RHB" }
+      ],
+      currentBowlers: [
+        { name: "Deepti Sharma", overs: "4.0", maidens: 0, runs: 24, wickets: 3, econ: "6.00", current: true },
+        { name: "Renuka Singh Thakur", overs: "4.0", maidens: 0, runs: 29, wickets: 2, econ: "7.25", current: false }
+      ],
+      recentBalls: ["1", "W", "0", "2", "4", "W"],
+      headToHead: { t1Wins: 11, t2Wins: 24, draws: 1, last5: ["IND-W", "AUS-W", "IND-W", "AUS-W", "IND-W"] },
+      manhattan1: [14, 18, 15, 22, 19, 17, 21, 16, 15, 19],
+      manhattan2: [16, 14, 19, 12, 15, 18, 17, 19, 18, 14],
+      innings: [],
+      commentary: [
+        { over: "20.0", ball: "W", type: "wicket", batter: "Wareham", bowler: "Deepti Sharma", text: "OUT! Stumped by Richa Ghosh! India Women seal a famous 14-run victory at a packed Eden Gardens in Kolkata!" }
+      ],
+      squads: {
+        t1Playing: ["Smriti Mandhana", "Shafali Verma", "Jemimah Rodrigues", "Harmanpreet Kaur (c)", "Richa Ghosh (wk)", "Deepti Sharma", "Pooja Vastrakar", "Radha Yadav", "Shreyanka Patil", "Renuka Singh Thakur", "Arundhati Reddy"],
+        t1Bench: ["Yastika Bhatia", "Sajeevan Sajana", "Titas Sadhu"],
+        t2Playing: ["Alyssa Healy (c & wk)", "Beth Mooney", "Ellyse Perry", "Tahlia McGrath", "Ashleigh Gardner", "Phoebe Litchfield", "Grace Harris", "Annabel Sutherland", "Georgia Wareham", "Megan Schutt", "Darcie Brown"],
+        t2Bench: ["Kim Garth", "Alana King"]
+      }
+    },
+    {
+      id: "m5",
+      series: "Ranji Trophy Elite 2026-27 • Round 3",
+      category: "Domestic",
+      format: "FIRST CLASS",
+      status: "LIVE",
+      statusBadge: "DAY 2 • TEA",
+      venue: "Eden Gardens, Kolkata",
+      toss: "Bengal won the toss and elected to bowl",
+      umpires: "Rohan Pandit, Jayaraman Madanagopal",
+      referee: "Manu Nayyar",
+      weather: { condition: "Sunny & Crisp", temp: "27°C", humidity: "58%", rainChance: "5%", wind: "12 km/h NE" },
+      pitchReport: "Green tinge assisting early seam movement for pacers before flattening out on Days 2-3.",
+      team1: { code: "MUM", name: "Mumbai", flag: "🛡️", score: "328", overs: "88.4", crr: "3.70", winProb: 45 },
+      team2: { code: "BEN", name: "Bengal", flag: "🐅", score: "214/3", overs: "61.0", crr: "3.51", rrr: "—", winProb: 40 },
+      drawProb: 15,
+      summaryText: "Bengal trail by 114 runs with 7 wickets remaining in 1st Innings",
+      currentPartnership: { runs: 96, balls: 174, p1: "Abhimanyu Easwaran 102*(168)", p2: "Anustup Majumdar 48*(92)" },
+      currentBatters: [
+        { name: "Abhimanyu Easwaran", runs: 102, balls: 168, fours: 12, sixes: 1, sr: "60.71", onStrike: true, role: "RHB" },
+        { name: "Anustup Majumdar", runs: 48, balls: 92, fours: 6, sixes: 0, sr: "52.17", onStrike: false, role: "RHB" }
+      ],
+      currentBowlers: [
+        { name: "Shardul Thakur", overs: "16.0", maidens: 3, runs: 54, wickets: 2, econ: "3.38", current: true },
+        { name: "Shams Mulani", overs: "19.0", maidens: 4, runs: 58, wickets: 1, econ: "3.05", current: false }
+      ],
+      recentBalls: ["0", "0", "4", "0", "1", "0"],
+      headToHead: { t1Wins: 14, t2Wins: 2, draws: 11, last5: ["MUM", "DRAW", "MUM", "BEN", "DRAW"] },
+      manhattan1: [28, 34, 41, 32, 38, 45, 36, 39, 35],
+      manhattan2: [25, 32, 38, 41, 39, 39],
+      innings: [],
+      commentary: [
+        { over: "61.0", ball: "4", type: "milestone", batter: "Easwaran", bowler: "Thakur", text: "HUNDRED FOR EASWARAN! Punches Shardul Thakur off the back foot through cover point to bring up a sparkling First-Class century at Eden Gardens!" }
+      ],
+      squads: {
+        t1Playing: ["Prithvi Shaw", "Ayush Mhatre", "Ajinkya Rahane (c)", "Shreyas Iyer", "Siddhesh Lad", "Hardik Tamore (wk)", "Shardul Thakur", "Shams Mulani", "Tanush Kotian", "Mohit Avasthi", "Tushar Deshpande"],
+        t1Bench: ["Angkrish Raghuvanshi", "Royston Dias"],
+        t2Playing: ["Abhimanyu Easwaran", "Sudip Chatterjee", "Sudip Kumar Gharami", "Anustup Majumdar (c)", "Shahbaz Ahmed", "Abishek Porel (wk)", "Writtick Chatterjee", "Akash Deep", "Mukesh Kumar", "Ishan Porel", "Suraj Sindhu Jaiswal"],
+        t2Bench: ["Avilin Ghosh", "Pradipta Pramanik"]
+      }
+    },
+    {
+      id: "m6",
+      series: "New Zealand vs Pakistan T20I Series 2026 • 3rd T20I",
+      category: "International",
+      format: "T20I",
+      status: "UPCOMING",
+      statusBadge: "TODAY • 19:30 IST",
+      venue: "Eden Park, Auckland",
+      toss: "Toss at 19:00 IST",
+      umpires: "Chris Brown, Wayne Knights",
+      referee: "Jeff Crowe",
+      weather: { condition: "Breezy & Clear", temp: "19°C", humidity: "62%", rainChance: "5%", wind: "22 km/h W" },
+      pitchReport: "Short straight boundaries at Eden Park (55m) promise a six-hitting carnival.",
+      team1: { code: "NZ", name: "New Zealand", flag: "🇳🇿", score: "Yet to bat", overs: "0.0", crr: "0.00", winProb: 55 },
+      team2: { code: "PAK", name: "Pakistan", flag: "🇵🇰", score: "Yet to bat", overs: "0.0", crr: "0.00", rrr: "—", winProb: 45 },
+      drawProb: 0,
+      summaryText: "Series tied 1-1 • Decider starts at 19:30 IST",
+      currentPartnership: { runs: 0, balls: 0, p1: "Finn Allen", p2: "Devon Conway" },
+      currentBatters: [
+        { name: "Finn Allen", runs: 0, balls: 0, fours: 0, sixes: 0, sr: "0.00", onStrike: true, role: "RHB" },
+        { name: "Tim Seifert (wk)", runs: 0, balls: 0, fours: 0, sixes: 0, sr: "0.00", onStrike: false, role: "RHB" }
+      ],
+      currentBowlers: [
+        { name: "Shaheen Shah Afridi", overs: "0.0", maidens: 0, runs: 0, wickets: 0, econ: "0.00", current: true }
+      ],
+      recentBalls: ["-", "-", "-", "-", "-", "-"],
+      headToHead: { t1Wins: 20, t2Wins: 23, draws: 0, last5: ["NZ", "PAK", "NZ", "NZ", "PAK"] },
+      manhattan1: [10, 12, 15, 11, 14, 16, 13, 18, 15, 20],
+      manhattan2: [11, 14, 12, 16, 15, 13, 17, 14, 19, 18],
+      innings: [],
+      commentary: [
+        { over: "0.0", ball: "-", type: "info", batter: "Preview", bowler: "Eden Park", text: "Welcome to our live coverage of the 3rd T20I decider at Eden Park, Auckland! Both captains are inspecting the surface." }
+      ],
+      squads: {
+        t1Playing: ["Finn Allen", "Devon Conway (wk)", "Rachin Ravindra", "Daryl Mitchell", "Glenn Phillips", "Mark Chapman", "Mitchell Santner (c)", "Matt Henry", "Tim Southee", "Lockie Ferguson", "Ish Sodhi"],
+        t1Bench: ["Will Young", "Ben Sears"],
+        t2Playing: ["Saim Ayub", "Babar Azam", "Mohammad Rizwan (c & wk)", "Fakhar Zaman", "Salman Ali Agha", "Shadab Khan", "Iftikhar Ahmed", "Shaheen Shah Afridi", "Naseem Shah", "Haris Rauf", "Abrar Ahmed"],
+        t2Bench: ["Usman Khan", "Abbas Afridi"]
+      }
+    }
+  ],
+
+  wagonWheelShots: [
+    { batter: "Yashasvi Jaiswal", runs: 4, angle: 35, dist: 0.92, zone: "Cover Drive", length: "Full" },
+    { batter: "Yashasvi Jaiswal", runs: 4, angle: 65, dist: 0.90, zone: "Point Cut", length: "Short" },
+    { batter: "Yashasvi Jaiswal", runs: 6, angle: 140, dist: 0.98, zone: "Fine Leg Hook", length: "Short" },
+    { batter: "Yashasvi Jaiswal", runs: 4, angle: 215, dist: 0.91, zone: "Midwicket Flick", length: "Good" },
+    { batter: "Yashasvi Jaiswal", runs: 6, angle: 255, dist: 0.97, zone: "Long-On Loft", length: "Full" },
+    { batter: "Yashasvi Jaiswal", runs: 2, angle: 310, dist: 0.65, zone: "Straight Push", length: "Good" },
+    { batter: "Yashasvi Jaiswal", runs: 1, angle: 110, dist: 0.55, zone: "Third Man Glide", length: "Good" },
+    { batter: "Yashasvi Jaiswal", runs: 4, angle: 15, dist: 0.93, zone: "Straight Drive", length: "Full" },
+    { batter: "Rishabh Pant", runs: 6, angle: 230, dist: 0.99, zone: "Slog Sweep", length: "Full" },
+    { batter: "Rishabh Pant", runs: 6, angle: 175, dist: 0.96, zone: "Reverse Scoop", length: "Yorker" },
+    { batter: "Rishabh Pant", runs: 4, angle: 280, dist: 0.92, zone: "Cow Corner Whip", length: "Good" },
+    { batter: "Rishabh Pant", runs: 4, angle: 48, dist: 0.89, zone: "Extra Cover Slash", length: "Short" },
+    { batter: "Rishabh Pant", runs: 6, angle: 350, dist: 0.98, zone: "SightscreenTonk", length: "Full" },
+    { batter: "Rishabh Pant", runs: 2, angle: 195, dist: 0.62, zone: "Square Leg Tuck", length: "Good" },
+    { batter: "Suryakumar Yadav", runs: 6, angle: 162, dist: 0.99, zone: "Supla Fine Leg", length: "Full" },
+    { batter: "Suryakumar Yadav", runs: 6, angle: 118, dist: 0.96, zone: "Upper Cut Third Man", length: "Short" },
+    { batter: "Suryakumar Yadav", runs: 4, angle: 42, dist: 0.92, zone: "Inside-Out Cover", length: "Good" },
+    { batter: "Suryakumar Yadav", runs: 4, angle: 245, dist: 0.91, zone: "Wristy Flick", length: "Yorker" }
+  ],
+
+  pitchDeliveries: [
+    { x: 0.48, y: 0.22, length: "Yorker", speed: "146.2 kph", outcome: "0", color: "#f59e0b" },
+    { x: 0.54, y: 0.35, length: "Full", speed: "141.8 kph", outcome: "4", color: "#10b981" },
+    { x: 0.42, y: 0.38, length: "Full", speed: "139.4 kph", outcome: "6", color: "#8b5cf6" },
+    { x: 0.51, y: 0.54, length: "Good", speed: "143.1 kph", outcome: "0", color: "#3b82f6" },
+    { x: 0.47, y: 0.58, length: "Good", speed: "142.5 kph", outcome: "W", color: "#ef4444" },
+    { x: 0.56, y: 0.52, length: "Good", speed: "140.0 kph", outcome: "1", color: "#3b82f6" },
+    { x: 0.39, y: 0.74, length: "Short", speed: "145.7 kph", outcome: "4", color: "#10b981" },
+    { x: 0.52, y: 0.78, length: "Short", speed: "147.1 kph", outcome: "6", color: "#8b5cf6" },
+    { x: 0.49, y: 0.56, length: "Good", speed: "89.4 kph", outcome: "0", color: "#3b82f6" },
+    { x: 0.44, y: 0.49, length: "Good", speed: "91.2 kph", outcome: "W", color: "#ef4444" }
+  ],
+
+  seriesStandings: {
+    "WTC 2025-27": [
+      { pos: 1, team: "🇮🇳 India", p: 13, w: 9, l: 3, d: 1, pts: 112, pct: "71.79%", nrr: "+1.14", form: ["W", "W", "D", "W", "L"] },
+      { pos: 2, team: "🇦🇺 Australia", p: 14, w: 9, l: 4, d: 1, pts: 108, pct: "64.28%", nrr: "+0.86", form: ["W", "L", "W", "W", "W"] },
+      { pos: 3, team: "🇿🇦 South Africa", p: 10, w: 6, l: 3, d: 1, pts: 76, pct: "63.33%", nrr: "+0.62", form: ["W", "W", "W", "L", "W"] },
+      { pos: 4, team: "🇳🇿 New Zealand", p: 11, w: 6, l: 5, d: 0, pts: 72, pct: "54.55%", nrr: "+0.28", form: ["L", "W", "W", "L", "W"] },
+      { pos: 5, team: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 England", p: 16, w: 8, l: 7, d: 1, pts: 92, pct: "47.92%", nrr: "+0.11", form: ["W", "L", "L", "W", "W"] },
+      { pos: 6, team: "🇱🇰 Sri Lanka", p: 10, w: 4, l: 6, d: 0, pts: 48, pct: "40.00%", nrr: "-0.34", form: ["L", "W", "L", "W", "L"] }
+    ],
+    "IPL 2026": [
+      { pos: 1, team: "🦁 Chennai Super Kings", p: 10, w: 7, l: 3, d: 0, pts: 14, pct: "70.00%", nrr: "+0.942", form: ["W", "W", "L", "W", "W"] },
+      { pos: 2, team: "💜 Kolkata Knight Riders", p: 10, w: 7, l: 3, d: 0, pts: 14, pct: "70.00%", nrr: "+0.815", form: ["W", "L", "W", "W", "W"] },
+      { pos: 3, team: "🌀 Mumbai Indians", p: 10, w: 6, l: 4, d: 0, pts: 12, pct: "60.00%", nrr: "+0.518", form: ["W", "W", "W", "L", "L"] },
+      { pos: 4, team: "🔥 Sunrisers Hyderabad", p: 10, w: 6, l: 4, d: 0, pts: 12, pct: "60.00%", nrr: "+0.390", form: ["L", "W", "W", "L", "W"] },
+      { pos: 5, team: "👑 Royal Challengers Bengaluru", p: 10, w: 5, l: 5, d: 0, pts: 10, pct: "50.00%", nrr: "+0.124", form: ["W", "W", "L", "L", "W"] },
+      { pos: 6, team: "🩷 Rajasthan Royals", p: 10, w: 4, l: 6, d: 0, pts: 8, pct: "40.00%", nrr: "-0.265", form: ["L", "L", "W", "L", "W"] }
+    ]
+  },
+
+  players: [
+    {
+      id: "p1", name: "Virat Kohli", country: "🇮🇳 India", role: "Top-Order Batter", style: "Right-hand bat",
+      test: { m: 121, runs: 9165, avg: 48.75, sr: 55.8, hundreds: 30, fifties: 31, hs: "254*" },
+      odi: { m: 295, runs: 13906, avg: 58.18, sr: 93.5, hundreds: 50, fifties: 72, hs: "183" },
+      t20i: { m: 125, runs: 4188, avg: 48.69, sr: 137.0, hundreds: 1, fifties: 38, hs: "122*" },
+      ipl: { m: 252, runs: 8004, avg: 38.66, sr: 131.9, hundreds: 8, fifties: 55, hs: "113" }
+    },
+    {
+      id: "p2", name: "Joe Root", country: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 England", role: "Top-Order Batter", style: "Right-hand bat • Offbreak",
+      test: { m: 152, runs: 12972, avg: 51.07, sr: 57.1, hundreds: 36, fifties: 65, hs: "262" },
+      odi: { m: 174, runs: 6622, avg: 47.64, sr: 86.9, hundreds: 16, fifties: 39, hs: "133*" },
+      t20i: { m: 32, runs: 893, avg: 35.72, sr: 126.3, hundreds: 0, fifties: 5, hs: "90*" },
+      ipl: { m: 3, runs: 10, avg: 10.0, sr: 90.9, hundreds: 0, fifties: 0, hs: "10" }
+    },
+    {
+      id: "p3", name: "Jasprit Bumrah", country: "🇮🇳 India", role: "Fast Bowler", style: "Right-arm fast",
+      test: { m: 43, runs: 312, avg: 19.42, sr: 42.1, hundreds: 202, fifties: 12, hs: "6/27 (BBI)" },
+      odi: { m: 89, runs: 91, avg: 23.55, sr: 30.7, hundreds: 149, fifties: 2, hs: "6/19 (BBI)" },
+      t20i: { m: 70, runs: 12, avg: 17.74, sr: 16.5, hundreds: 89, fifties: 0, hs: "3/7 (BBI)" },
+      ipl: { m: 133, runs: 69, avg: 22.51, sr: 18.2, hundreds: 165, fifties: 2, hs: "5/10 (BBI)" }
+    },
+    {
+      id: "p4", name: "Yashasvi Jaiswal", country: "🇮🇳 India", role: "Opening Batter", style: "Left-hand bat",
+      test: { m: 18, runs: 1720, avg: 57.33, sr: 66.8, hundreds: 5, fifties: 9, hs: "214*" },
+      odi: { m: 4, runs: 184, avg: 46.00, sr: 104.5, hundreds: 0, fifties: 2, hs: "77" },
+      t20i: { m: 23, runs: 723, avg: 36.15, sr: 164.3, hundreds: 1, fifties: 5, hs: "100" },
+      ipl: { m: 53, runs: 1607, avg: 32.14, sr: 150.6, hundreds: 2, fifties: 9, hs: "124" }
+    },
+    {
+      id: "p5", name: "Travis Head", country: "🇦🇺 Australia", role: "Aggressive Middle-Order", style: "Left-hand bat • Offbreak",
+      test: { m: 54, runs: 3610, avg: 43.49, sr: 66.4, hundreds: 8, fifties: 17, hs: "175" },
+      odi: { m: 71, runs: 2742, avg: 44.22, sr: 104.8, hundreds: 6, fifties: 16, hs: "154*" },
+      t20i: { m: 38, runs: 1093, avg: 33.12, sr: 160.4, hundreds: 0, fifties: 5, hs: "91" },
+      ipl: { m: 25, runs: 772, avg: 35.09, sr: 173.8, hundreds: 1, fifties: 5, hs: "102" }
+    },
+    {
+      id: "p6", name: "Smriti Mandhana", country: "🇮🇳 India Women", role: "Opening Batter", style: "Left-hand bat",
+      test: { m: 7, runs: 629, avg: 57.18, sr: 67.2, hundreds: 2, fifties: 3, hs: "149" },
+      odi: { m: 91, runs: 3960, avg: 46.58, sr: 86.2, hundreds: 9, fifties: 29, hs: "136" },
+      t20i: { m: 145, runs: 3684, avg: 29.47, sr: 123.8, hundreds: 0, fifties: 29, hs: "87" },
+      ipl: { m: 26, runs: 749, avg: 31.20, sr: 135.4, hundreds: 0, fifties: 5, hs: "81" }
+    }
+  ],
+
+  iccRankings: {
+    men: {
+      TEST: {
+        teams: [
+          { rank: 1, name: "🇮🇳 India", rating: 124, points: 4464, trend: "▲1" },
+          { rank: 2, name: "🇦🇺 Australia", rating: 122, points: 4514, trend: "▼1" },
+          { rank: 3, name: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 England", rating: 109, points: 4687, trend: "—" },
+          { rank: 4, name: "🇿🇦 South Africa", rating: 105, points: 2730, trend: "▲1" },
+          { rank: 5, name: "🇳🇿 New Zealand", rating: 101, points: 3131, trend: "▼1" }
+        ],
+        batters: [
+          { rank: 1, name: "Joe Root (ENG)", rating: 903, best: 932, trend: "—" },
+          { rank: 2, name: "Yashasvi Jaiswal (IND)", rating: 868, best: 868, trend: "▲2" },
+          { rank: 3, name: "Kane Williamson (NZ)", rating: 859, best: 919, trend: "▼1" },
+          { rank: 4, name: "Harry Brook (ENG)", rating: 849, best: 898, trend: "▼1" },
+          { rank: 5, name: "Rishabh Pant (IND)", rating: 814, best: 814, trend: "▲1" }
+        ],
+        bowlers: [
+          { rank: 1, name: "Jasprit Bumrah (IND)", rating: 904, best: 904, trend: "—" },
+          { rank: 2, name: "Kagiso Rabada (RSA)", rating: 866, best: 902, trend: "—" },
+          { rank: 3, name: "Josh Hazlewood (AUS)", rating: 847, best: 864, trend: "—" },
+          { rank: 4, name: "Pat Cummins (AUS)", rating: 832, best: 914, trend: "▲1" },
+          { rank: 5, name: "Ravindra Jadeja (IND)", rating: 809, best: 899, trend: "—" }
+        ]
+      },
+      ODI: {
+        teams: [
+          { rank: 1, name: "🇮🇳 India", rating: 122, points: 5490, trend: "—" },
+          { rank: 2, name: "🇦🇺 Australia", rating: 116, points: 4756, trend: "—" },
+          { rank: 3, name: "🇿🇦 South Africa", rating: 112, points: 4144, trend: "—" },
+          { rank: 4, name: "🇵🇰 Pakistan", rating: 107, points: 3852, trend: "—" },
+          { rank: 5, name: "🇳🇿 New Zealand", rating: 103, points: 4017, trend: "—" }
+        ],
+        batters: [
+          { rank: 1, name: "Shubman Gill (IND)", rating: 818, best: 847, trend: "▲1" },
+          { rank: 2, name: "Babar Azam (PAK)", rating: 812, best: 898, trend: "▼1" },
+          { rank: 3, name: "Rohit Sharma (IND)", rating: 787, best: 885, trend: "—" },
+          { rank: 4, name: "Virat Kohli (IND)", rating: 774, best: 911, trend: "—" },
+          { rank: 5, name: "Heinrich Klaasen (RSA)", rating: 756, best: 760, trend: "▲1" }
+        ],
+        bowlers: [
+          { rank: 1, name: "Rashid Khan (AFG)", rating: 711, best: 806, trend: "—" },
+          { rank: 2, name: "Kuldeep Yadav (IND)", rating: 698, best: 765, trend: "▲1" },
+          { rank: 3, name: "Keshav Maharaj (RSA)", rating: 691, best: 741, trend: "▼1" },
+          { rank: 4, name: "Shaheen Afridi (PAK)", rating: 682, best: 733, trend: "—" },
+          { rank: 5, name: "Jasprit Bumrah (IND)", rating: 675, best: 841, trend: "▲2" }
+        ]
+      },
+      T20I: {
+        teams: [
+          { rank: 1, name: "🇮🇳 India", rating: 270, points: 16200, trend: "—" },
+          { rank: 2, name: "🇦🇺 Australia", rating: 259, points: 11655, trend: "—" },
+          { rank: 3, name: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 England", rating: 254, points: 11176, trend: "—" },
+          { rank: 4, name: "🌴 West Indies", rating: 248, points: 11904, trend: "▲1" },
+          { rank: 5, name: "🇿🇦 South Africa", rating: 245, points: 10780, trend: "▼1" }
+        ],
+        batters: [
+          { rank: 1, name: "Travis Head (AUS)", rating: 862, best: 881, trend: "—" },
+          { rank: 2, name: "Suryakumar Yadav (IND)", rating: 848, best: 912, trend: "—" },
+          { rank: 3, name: "Phil Salt (ENG)", rating: 816, best: 859, trend: "—" },
+          { rank: 4, name: "Tilak Varma (IND)", rating: 804, best: 806, trend: "▲1" },
+          { rank: 5, name: "Yashasvi Jaiswal (IND)", rating: 782, best: 794, trend: "—" }
+        ],
+        bowlers: [
+          { rank: 1, name: "Adil Rashid (ENG)", rating: 722, best: 746, trend: "—" },
+          { rank: 2, name: "Akeal Hosein (WI)", rating: 709, best: 715, trend: "▲1" },
+          { rank: 3, name: "Varun Chakaravarthy (IND)", rating: 704, best: 706, trend: "▲3" },
+          { rank: 4, name: "Wanindu Hasaranga (SL)", rating: 696, best: 797, trend: "▼2" },
+          { rank: 5, name: "Arshdeep Singh (IND)", rating: 688, best: 692, trend: "▲1" }
+        ]
+      }
+    },
+    women: {
+      TEST: {
+        teams: [
+          { rank: 1, name: "🇦🇺 Australia Women", rating: 148, points: 2960, trend: "—" },
+          { rank: 2, name: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 England Women", rating: 126, points: 2520, trend: "—" },
+          { rank: 3, name: "🇮🇳 India Women", rating: 121, points: 2420, trend: "▲1" }
+        ],
+        batters: [
+          { rank: 1, name: "Smriti Mandhana (IND-W)", rating: 768, best: 768, trend: "▲1" },
+          { rank: 2, name: "Nat Sciver-Brunt (ENG-W)", rating: 762, best: 790, trend: "▼1" },
+          { rank: 3, name: "Ellyse Perry (AUS-W)", rating: 749, best: 812, trend: "—" }
+        ],
+        bowlers: [
+          { rank: 1, name: "Sophie Ecclestone (ENG-W)", rating: 779, best: 796, trend: "—" },
+          { rank: 2, name: "Deepti Sharma (IND-W)", rating: 742, best: 748, trend: "▲1" },
+          { rank: 3, name: "Ashleigh Gardner (AUS-W)", rating: 731, best: 755, trend: "▼1" }
+        ]
+      },
+      ODI: {
+        teams: [
+          { rank: 1, name: "🇦🇺 Australia Women", rating: 164, points: 4920, trend: "—" },
+          { rank: 2, name: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 England Women", rating: 128, points: 3840, trend: "—" },
+          { rank: 3, name: "🇮🇳 India Women", rating: 118, points: 3540, trend: "▲1" }
+        ],
+        batters: [
+          { rank: 1, name: "Laura Wolvaardt (RSA-W)", rating: 773, best: 785, trend: "—" },
+          { rank: 2, name: "Smriti Mandhana (IND-W)", rating: 758, best: 797, trend: "▲1" },
+          { rank: 3, name: "Chamari Athapaththu (SL-W)", rating: 744, best: 773, trend: "▼1" }
+        ],
+        bowlers: [
+          { rank: 1, name: "Sophie Ecclestone (ENG-W)", rating: 770, best: 799, trend: "—" },
+          { rank: 2, name: "Megan Schutt (AUS-W)", rating: 712, best: 766, trend: "—" },
+          { rank: 3, name: "Deepti Sharma (IND-W)", rating: 698, best: 715, trend: "▲1" }
+        ]
+      },
+      T20I: {
+        teams: [
+          { rank: 1, name: "🇦🇺 Australia Women", rating: 294, points: 10290, trend: "—" },
+          { rank: 2, name: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 England Women", rating: 281, points: 9835, trend: "—" },
+          { rank: 3, name: "🇮🇳 India Women", rating: 269, points: 9953, trend: "—" }
+        ],
+        batters: [
+          { rank: 1, name: "Beth Mooney (AUS-W)", rating: 769, best: 794, trend: "—" },
+          { rank: 2, name: "Smriti Mandhana (IND-W)", rating: 759, best: 765, trend: "▲1" },
+          { rank: 3, name: "Tahlia McGrath (AUS-W)", rating: 752, best: 837, trend: "▼1" }
+        ],
+        bowlers: [
+          { rank: 1, name: "Sophie Ecclestone (ENG-W)", rating: 762, best: 795, trend: "—" },
+          { rank: 2, name: "Deepti Sharma (IND-W)", rating: 745, best: 755, trend: "—" },
+          { rank: 3, name: "Sadia Iqbal (PAK-W)", rating: 736, best: 746, trend: "—" }
+        ]
+      }
+    }
+  },
+
+  news: [
+    {
+      id: "n1",
+      category: "Tactical Analysis",
+      badge: "YOUCRICK PLUS",
+      title: "How Yashasvi Jaiswal & Rishabh Pant Decoded the Kookaburra Seam at the MCG",
+      summary: "By batting 18cm outside the popping crease against Scott Boland and sweeping Nathan Lyon against the rough, India's left-hand duo shifted the 4th-day momentum.",
+      author: "Harsha Bhogle & Tactical Desk",
+      time: "18 mins ago",
+      readTime: "4 min read",
+      body: [
+        "Fourth-day afternoons at the Melbourne Cricket Ground have historically belonged to relentless seamers exploiting variable bounce. Yet Yashasvi Jaiswal and Rishabh Pant flipped the script with contrasting geometry.",
+        "Hawkeye tracking reveals Jaiswal intercepted 72% of Pat Cummins's deliveries a full 18 centimeters ahead of his Day 1 contact point—smothering late nip before the Kookaburra could deviate.",
+        "At the other end, Pant neutralized Nathan Lyon's footmarks by stepping across his stumps to unlock the 190°–250° arc between deep square leg and wide long-on, forcing Cummins to push two catchers back to the rope."
+      ]
+    },
+    {
+      id: "n2",
+      category: "IPL 2026 Live",
+      badge: "MATCH REPORT",
+      title: "Suryakumar Yadav's 360° Masterclass Keeps Mumbai Indians Alive in 219 Chase",
+      summary: "After Shivam Dube and MS Dhoni propelled CSK to 218/5, Suryakumar's 39-ball 79* has set up a thrilling last-3-over finish at Wankhede.",
+      author: "Sambit Bal",
+      time: "42 mins ago",
+      readTime: "3 min read",
+      body: [
+        "El Clasico of the IPL rarely disappoints, and Match 42 at the Wankhede Stadium has delivered fireworks from ball one.",
+        "Ruturaj Gaikwad (78 off 46) and Shivam Dube (58 off 27) laid a commanding platform before MS Dhoni launched three towering sixes in a 9-ball 26* cameo.",
+        "In response, Suryakumar Yadav used the pace of Matheesha Pathirana to ramp, scoop, and slice boundaries all around the dial, reducing the equation to 35 off 16 balls."
+      ]
+    },
+    {
+      id: "n3",
+      category: "Women's Cricket",
+      badge: "CHAMPIONS",
+      title: "Mandhana 84 & Deepti 3-Fer Power India Women to Tri-Series Final Triumph at Eden Gardens",
+      summary: "Playing in front of 48,000 fans in Kolkata, India Women defended 176/4 with clinical middle-overs spin choke.",
+      author: "Snehal Pradhan",
+      time: "2 hours ago",
+      readTime: "5 min read",
+      body: [
+        "Smriti Mandhana's love affair with big-match finals continued at Eden Gardens as her fluent 51-ball 84 powered India Women to 176/4.",
+        "When Australia Women threatened through Ellyse Perry and Ashleigh Gardner, local favorite Deepti Sharma bowled four overs of flight and dip to claim 3/24, sparking celebrations across Kolkata."
+      ]
+    },
+    {
+      id: "n4",
+      category: "Domestic Watch",
+      badge: "RANJI TROPHY",
+      title: "Abhimanyu Easwaran's Unbeaten Century Anchors Bengal's Reply Against Mumbai",
+      summary: "Bengal's prolific opener compiled his 28th First-Class hundred to narrow Mumbai's first-innings lead at Tea on Day 2.",
+      author: "Joy Bhattacharjya",
+      time: "3 hours ago",
+      readTime: "3 min read",
+      body: [
+        "Against a disciplined Mumbai attack led by Shardul Thakur and Shams Mulani, Abhimanyu Easwaran showed textbook judgment outside off stump.",
+        "His unbroken 96-run stand with veteran Anustup Majumdar has positioned Bengal within 114 runs of the first-innings lead with 7 wickets in hand."
+      ]
+    }
+  ]
+};
+
+
+// YouCrick — Complete Interactive Application Controller
+(function() {
+  const DATA = window.YOUCRICK_DATA;
+  let state = {
+    currentView: 'home',
+    activeMatchId: 'm1',
+    activeSubTab: 'commentary',
+    tickerFilter: 'ALL',
+    commFilter: 'ALL',
+    autoSimInterval: null,
+    audioMuted: true,
+    pollVoted: null,
+    pollCounts: { IND: 31420, AUS: 11250, DRAW: 6250 },
+    dreamXI: ['Virat Kohli', 'Yashasvi Jaiswal', 'Rishabh Pant', 'Suryakumar Yadav', 'Jasprit Bumrah', 'Smriti Mandhana'],
+    manhattanChartInstance: null
+  };
+
+  const DREAM_POOL = [
+    'Virat Kohli', 'Yashasvi Jaiswal', 'Rohit Sharma', 'Rishabh Pant',
+    'Suryakumar Yadav', 'Joe Root', 'Travis Head', 'Hardik Pandya',
+    'Ravindra Jadeja', 'Jasprit Bumrah', 'Pat Cummins', 'Rashid Khan',
+    'Smriti Mandhana', 'Kagiso Rabada', 'MS Dhoni'
+  ];
+
+  function getActiveMatch() {
+    return DATA.matches.find(m => m.id === state.activeMatchId) || DATA.matches[0];
+  }
+
+  // Toast Notification Helper
+  window.showToast = function(msg) {
+    const c = document.getElementById('toast-container');
+    if (!c) return;
+    const el = document.createElement('div');
+    el.className = 'toast-enter bg-slate-900 text-white border border-emerald-500/40 px-4 py-2.5 rounded-xl shadow-xl text-xs font-bold flex items-center gap-2';
+    el.innerHTML = `<span class="text-emerald-400">🏏</span><span>${msg}</span>`;
+    c.appendChild(el);
+    setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 2800);
+  };
+
+  // Synthesized Web Audio SFX (Bat Hit & Crowd Cheer)
+  function playBallSound(outcome) {
+    if (state.audioMuted) return;
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      const ctx = new Ctx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      const now = ctx.currentTime;
+      if (outcome === 4 || outcome === 6) {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(520, now);
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.18);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+        osc.start(now);
+        osc.stop(now + 0.22);
+      } else if (outcome === 'W') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(300, now);
+        osc.frequency.exponentialRampToValueAtTime(110, now + 0.25);
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.26);
+        osc.start(now);
+        osc.stop(now + 0.26);
+      } else {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(360, now);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+        osc.start(now);
+        osc.stop(now + 0.08);
+      }
+    } catch (e) {}
+  }
+
+  // Navigation & Theme Switching
+  window.switchMainView = function(view) {
+    state.currentView = view;
+    const views = ['home', 'matchcenter', 'schedule', 'stats', 'rankings', 'news', 'fanzone'];
+    views.forEach(v => {
+      const panel = document.getElementById('view-' + v);
+      const navBtn = document.getElementById('nav-' + v);
+      if (panel) panel.classList.toggle('hidden', v !== view);
+      if (navBtn) navBtn.classList.toggle('nav-tab-active', v === view);
+    });
+    if (view === 'matchcenter') {
+      renderMatchCenter();
+    } else if (view === 'schedule') {
+      renderSeriesTable('WTC 2025-27');
+      renderScheduleFixtures();
+    } else if (view === 'stats') {
+      renderH2HComparison();
+    } else if (view === 'rankings') {
+      renderRankings();
+    } else if (view === 'news') {
+      renderFullNews();
+    } else if (view === 'fanzone') {
+      runDrsSimulation();
+      calculateDls();
+      renderDreamXI();
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  window.toggleMobileDrawer = function(force) {
+    const d = document.getElementById('mobile-drawer');
+    if (!d) return;
+    if (typeof force === 'boolean') {
+      d.classList.toggle('hidden', !force);
+    } else {
+      d.classList.toggle('hidden');
+    }
+  };
+
+  window.toggleTheme = function() {
+    const html = document.documentElement;
+    const isDark = html.classList.toggle('dark');
+    const icon = document.getElementById('theme-icon');
+    if (icon) icon.textContent = isDark ? '☀️' : '🌙';
+    try { localStorage.setItem('yc_theme', isDark ? 'dark' : 'light'); } catch (e) {}
+    if (state.currentView === 'matchcenter' && state.activeSubTab === 'analytics') {
+      drawWagonWheel();
+      drawPitchMap();
+      renderManhattanChart();
+    }
+  };
+
+  window.toggleAudioMute = function() {
+    state.audioMuted = !state.audioMuted;
+    const icon = document.getElementById('audio-icon');
+    if (icon) icon.textContent = state.audioMuted ? '🔇' : '🔊';
+    showToast(state.audioMuted ? 'Stadium SFX Muted' : 'Stadium SFX Enabled');
+  };
+
+  // Top Match Ticker Strip
+  window.filterTicker = function(cat) {
+    state.tickerFilter = cat;
+    document.querySelectorAll('.ticker-cat-btn').forEach(btn => {
+      const active = btn.getAttribute('data-cat') === cat;
+      btn.className = active
+        ? 'ticker-cat-btn px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white shrink-0'
+        : 'ticker-cat-btn px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 shrink-0';
+    });
+    renderTickerStrip();
+  };
+
+  window.scrollTicker = function(delta) {
+    const strip = document.getElementById('live-ticker-strip');
+    if (strip) strip.scrollBy({ left: delta, behavior: 'smooth' });
+  };
+
+  function renderTickerStrip() {
+    const strip = document.getElementById('live-ticker-strip');
+    if (!strip) return;
+    const list = DATA.matches.filter(m => {
+      if (state.tickerFilter === 'ALL') return true;
+      if (state.tickerFilter === 'LIVE') return m.status === 'LIVE';
+      return m.category === state.tickerFilter;
+    });
+
+    strip.innerHTML = list.map(m => {
+      const isSelected = m.id === state.activeMatchId;
+      const badgeColor = m.status === 'LIVE'
+        ? 'bg-red-500/20 text-red-400 border-red-500/30'
+        : (m.status === 'RESULT' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border-amber-500/30');
+      return `
+        <div onclick="selectMatch('${m.id}')" class="min-w-[265px] sm:min-w-[290px] p-3 rounded-xl bg-slate-800/90 hover:bg-slate-800 border ${isSelected ? 'border-emerald-400 ring-1 ring-emerald-400/50' : 'border-slate-700'} cursor-pointer transition flex flex-col justify-between shrink-0">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <span class="text-[10px] text-slate-400 font-semibold truncate max-w-[175px]">${m.series}</span>
+              <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded border ${badgeColor} flex items-center gap-1 shrink-0">
+                ${m.status === 'LIVE' ? '<span class="live-dot"></span>' : ''}${m.format}
+              </span>
+            </div>
+            <div class="space-y-1.5 text-xs">
+              <div class="flex items-center justify-between font-bold">
+                <span class="flex items-center gap-1.5"><span>${m.team1.flag}</span><span>${m.team1.code}</span></span>
+                <span class="text-white">${m.team1.score}</span>
+              </div>
+              <div class="flex items-center justify-between font-bold">
+                <span class="flex items-center gap-1.5"><span>${m.team2.flag}</span><span>${m.team2.code}</span></span>
+                <span class="text-slate-200">${m.team2.score}</span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-2.5 pt-2 border-t border-slate-700/80 flex items-center justify-between text-[11px]">
+            <span class="text-emerald-400 font-medium truncate max-w-[195px]">${m.summaryText}</span>
+            <span class="text-slate-400 font-bold hover:text-white shrink-0">Center →</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  window.selectMatch = function(matchId) {
+    state.activeMatchId = matchId;
+    const m = getActiveMatch();
+    const ind = document.getElementById('sim-match-indicator');
+    if (ind) ind.textContent = `Active: ${m.team1.code} vs ${m.team2.code}`;
+    renderTickerStrip();
+    renderHomeFeatured();
+    if (state.currentView === 'matchcenter') {
+      renderMatchCenter();
+    } else {
+      switchMainView('matchcenter');
+    }
+  };
+
+  // Home View Rendering
+  function renderHomeFeatured() {
+    const m = getActiveMatch();
+    const container = document.getElementById('home-featured-match');
+    if (!container) return;
+
+    const recentHtml = m.recentBalls.map(b => `<span class="ball-badge ball-${b}">${b}</span>`).join('');
+    const battersHtml = m.currentBatters.map(b => `
+      <tr class="border-b border-slate-200/60 dark:border-slate-800 text-xs">
+        <td class="py-2 font-bold">${b.name} ${b.onStrike ? '<span class="text-emerald-500">*</span>' : ''}</td>
+        <td class="py-2 text-right font-extrabold">${b.runs}</td>
+        <td class="py-2 text-right text-slate-500">${b.balls}</td>
+        <td class="py-2 text-right text-slate-500">${b.fours}</td>
+        <td class="py-2 text-right text-slate-500">${b.sixes}</td>
+        <td class="py-2 text-right font-semibold">${b.sr}</td>
+      </tr>
+    `).join('');
+
+    container.innerHTML = `
+      <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-4 border-b border-slate-200 dark:border-slate-800">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase px-2 py-0.5 rounded bg-red-500/15 text-red-500">
+              <span class="live-dot"></span> ${m.statusBadge}
+            </span>
+            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${m.series}</span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">📍 ${m.venue}</p>
+        </div>
+        <button onclick="switchMainView('matchcenter')" class="px-3.5 py-1.5 rounded-lg bg-[#009270] hover:bg-[#007358] text-white text-xs font-bold transition shadow-sm">
+          Open Full Match Center →
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center mb-4">
+        <div class="p-3.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/70">
+          <div class="flex items-center justify-between">
+            <span class="text-base sm:text-lg font-extrabold flex items-center gap-2"><span class="text-2xl">${m.team1.flag}</span> ${m.team1.name}</span>
+            <span class="text-lg sm:text-xl font-black text-[#009270] dark:text-emerald-400">${m.team1.score}</span>
+          </div>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Overs: ${m.team1.overs} • CRR: ${m.team1.crr}</div>
+        </div>
+        <div class="p-3.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/70">
+          <div class="flex items-center justify-between">
+            <span class="text-base sm:text-lg font-extrabold flex items-center gap-2"><span class="text-2xl">${m.team2.flag}</span> ${m.team2.name}</span>
+            <span class="text-lg sm:text-xl font-black">${m.team2.score}</span>
+          </div>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Overs: ${m.team2.overs} • Win Prob: ${m.team2.winProb}%</div>
+        </div>
+      </div>
+
+      <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-xs font-bold text-[#009270] dark:text-emerald-300 mb-4 flex flex-wrap items-center justify-between gap-2">
+        <span>📢 ${m.summaryText}</span>
+        <span>Partnership: ${m.currentPartnership.runs} (${m.currentPartnership.balls})</span>
+      </div>
+
+      <!-- Mini Batter Table -->
+      <div class="responsive-table-wrap mb-4">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-slate-200 dark:border-slate-800 text-[11px] uppercase text-slate-400">
+              <th class="pb-1.5">Batter</th>
+              <th class="pb-1.5 text-right">R</th>
+              <th class="pb-1.5 text-right">B</th>
+              <th class="pb-1.5 text-right">4s</th>
+              <th class="pb-1.5 text-right">6s</th>
+              <th class="pb-1.5 text-right">SR</th>
+            </tr>
+          </thead>
+          <tbody>${battersHtml}</tbody>
+        </table>
+      </div>
+
+      <!-- Recent Overs Strip -->
+      <div class="flex items-center justify-between gap-2 flex-wrap pt-2 border-t border-slate-200 dark:border-slate-800">
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+          <span class="text-xs font-bold text-slate-400 mr-1">Recent:</span>
+          ${recentHtml}
+        </div>
+        <div class="flex items-center gap-2 text-xs font-bold">
+          <button onclick="switchMainView('matchcenter'); switchMatchSubTab('scorecard')" class="text-[#009270] dark:text-emerald-400 hover:underline">Scorecard</button>
+          <span>•</span>
+          <button onclick="switchMainView('matchcenter'); switchMatchSubTab('analytics')" class="text-[#009270] dark:text-emerald-400 hover:underline">360° Wagon Wheel</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderHomeWidgets() {
+    // News Grid
+    const ng = document.getElementById('home-news-grid');
+    if (ng) {
+      ng.innerHTML = DATA.news.map(n => `
+        <article onclick="openArticleModal('${n.id}')" class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 hover:border-emerald-500 cursor-pointer transition flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-emerald-500/15 text-[#009270] dark:text-emerald-400">${n.badge}</span>
+              <span class="text-[11px] text-slate-400">${n.time}</span>
+            </div>
+            <h3 class="font-bold text-sm leading-snug mb-1.5 hover:text-[#009270] dark:hover:text-emerald-400">${n.title}</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">${n.summary}</p>
+          </div>
+          <div class="mt-3 pt-2 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-[11px] text-slate-400">
+            <span>✍️ ${n.author}</span>
+            <span class="font-bold text-emerald-500">Read →</span>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    // Mini Standings
+    const ms = document.getElementById('home-mini-standings');
+    if (ms) {
+      const rows = DATA.seriesStandings['IPL 2026'].slice(0, 5).map(r => `
+        <tr class="border-b border-slate-200/60 dark:border-slate-800 text-xs">
+          <td class="py-2 font-bold">${r.pos}. ${r.team}</td>
+          <td class="py-2 text-right">${r.p}</td>
+          <td class="py-2 text-right font-bold text-emerald-500">${r.pts}</td>
+          <td class="py-2 text-right text-slate-400">${r.nrr}</td>
+        </tr>
+      `).join('');
+      ms.innerHTML = `
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="text-[10px] uppercase text-slate-400 border-b border-slate-200 dark:border-slate-800">
+              <th class="pb-1.5">Team</th>
+              <th class="pb-1.5 text-right">P</th>
+              <th class="pb-1.5 text-right">Pts</th>
+              <th class="pb-1.5 text-right">NRR</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    renderPoll();
+  }
+
+  window.votePoll = function(choice) {
+    if (!state.pollVoted) {
+      state.pollCounts[choice] = (state.pollCounts[choice] || 0) + 1;
+      state.pollVoted = choice;
+      showToast(`Vote recorded for ${choice}!`);
+      renderPoll();
+    }
+  };
+
+  function renderPoll() {
+    const box = document.getElementById('poll-options');
+    const totalEl = document.getElementById('poll-total-votes');
+    if (!box) return;
+    const total = state.pollCounts.IND + state.pollCounts.AUS + state.pollCounts.DRAW;
+    if (totalEl) totalEl.textContent = `${total.toLocaleString()} votes`;
+
+    const opts = [
+      { key: 'IND', label: '🇮🇳 India Win', count: state.pollCounts.IND, color: 'bg-emerald-500' },
+      { key: 'AUS', label: '🇦🇺 Australia Win', count: state.pollCounts.AUS, color: 'bg-amber-500' },
+      { key: 'DRAW', label: '🤝 Match Drawn', count: state.pollCounts.DRAW, color: 'bg-blue-500' }
+    ];
+
+    box.innerHTML = opts.map(o => {
+      const pct = Math.round((o.count / total) * 100);
+      const isPicked = state.pollVoted === o.key;
+      return `
+        <button onclick="votePoll('${o.key}')" class="w-full p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:border-emerald-500 border ${isPicked ? 'border-emerald-500' : 'border-transparent'} text-left transition relative overflow-hidden">
+          <div class="flex items-center justify-between text-xs font-bold relative z-10 mb-1">
+            <span>${o.label} ${isPicked ? '✓' : ''}</span>
+            <span>${pct}%</span>
+          </div>
+          <div class="w-full h-1.5 rounded-full bg-slate-300 dark:bg-slate-700 overflow-hidden">
+            <div class="${o.color} h-full rounded-full" style="width:${pct}%"></div>
+          </div>
+        </button>
+      `;
+    }).join('');
+  }
+
+  // Live Ball Simulation Engine
+  window.toggleAutoSim = function() {
+    const dot = document.getElementById('autosim-dot');
+    const label = document.getElementById('autosim-label');
+    if (state.autoSimInterval) {
+      clearInterval(state.autoSimInterval);
+      state.autoSimInterval = null;
+      if (dot) dot.className = 'w-2 h-2 rounded-full bg-slate-900';
+      if (label) label.textContent = 'Sim Live';
+      showToast('Live Auto-Simulation Paused');
+    } else {
+      if (dot) dot.className = 'w-2 h-2 rounded-full bg-red-600 animate-ping';
+      if (label) label.textContent = 'Simulating...';
+      showToast('Auto-Simulating Live Balls every 3.5s!');
+      simulateManualBall('RANDOM');
+      state.autoSimInterval = setInterval(() => {
+        simulateManualBall('RANDOM');
+      }, 3500);
+    }
+  };
+
+  window.simulateManualBall = function(outcome) {
+    const m = getActiveMatch();
+    const choices = [0, 0, 1, 1, 2, 4, 4, 6, 'W'];
+    const actual = outcome === 'RANDOM' ? choices[Math.floor(Math.random() * choices.length)] : outcome;
+    playBallSound(actual);
+
+    // Update overs
+    let [ov, ball] = (m.team2.score.includes('/') && m.id === 'm2' ? m.team2.overs : m.team1.overs).split('.').map(Number);
+    if (isNaN(ov)) { ov = 10; ball = 0; }
+    ball += 1;
+    if (ball >= 6) { ov += 1; ball = 0; }
+    const newOvers = `${ov}.${ball}`;
+
+    // Active batter & bowler
+    const striker = m.currentBatters.find(b => b.onStrike) || m.currentBatters[0];
+    const bowler = m.currentBowlers[0];
+
+    let commText = '';
+    let commType = 'run';
+    if (actual === 'W') {
+      commType = 'wicket';
+      commText = `OUT! Big breakthrough by ${bowler.name}! Sharp delivery catches the edge of ${striker.name}'s bat and the stadium erupts!`;
+      bowler.wickets += 1;
+    } else if (actual === 6) {
+      commType = 'six';
+      striker.runs += 6;
+      striker.balls += 1;
+      striker.sixes += 1;
+      commText = `SIX! Magisterial hit by ${striker.name}! Cleans the front leg and launches ${bowler.name} deep into the stands!`;
+    } else if (actual === 4) {
+      commType = 'four';
+      striker.runs += 4;
+      striker.balls += 1;
+      striker.fours += 1;
+      commText = `FOUR! Crisp timing from ${striker.name}! Pierces the infield off ${bowler.name} for a boundary!`;
+    } else {
+      striker.runs += Number(actual);
+      striker.balls += 1;
+      commType = actual === 0 ? 'dot' : 'run';
+      commText = actual === 0
+        ? `Dot ball! ${bowler.name} lands it on a probing length, solidly defended by ${striker.name}.`
+        : `${striker.name} works ${bowler.name} into the gap for ${actual} run${actual > 1 ? 's' : ''}.`;
+    }
+    striker.sr = ((striker.runs / Math.max(1, striker.balls)) * 100).toFixed(2);
+
+    // Update match score string
+    const targetTeam = m.id === 'm2' ? m.team2 : m.team1;
+    targetTeam.overs = newOvers;
+    const scoreMatch = targetTeam.score.match(/(\d+)\/(\d+)$/);
+    if (scoreMatch) {
+      const curRuns = parseInt(scoreMatch[1], 10) + (actual === 'W' ? 0 : Number(actual));
+      const curWkts = Math.min(9, parseInt(scoreMatch[2], 10) + (actual === 'W' ? 1 : 0));
+      targetTeam.score = targetTeam.score.replace(/\d+\/\d+$/, `${curRuns}/${curWkts}`);
+    }
+
+    m.recentBalls.push(String(actual));
+    if (m.recentBalls.length > 12) m.recentBalls.shift();
+
+    m.commentary.unshift({
+      over: newOvers,
+      ball: String(actual),
+      type: commType,
+      batter: striker.name,
+      bowler: bowler.name,
+      text: commText
+    });
+
+    renderTickerStrip();
+    renderHomeFeatured();
+    if (state.currentView === 'matchcenter') {
+      renderMatchCenter();
+    }
+    showToast(`Over ${newOvers}: ${actual === 'W' ? 'WICKET!' : actual + ' run(s)'} (${striker.name})`);
+  };
+
+  // Match Center Rendering
+  window.switchMatchSubTab = function(tab) {
+    state.activeSubTab = tab;
+    const tabs = ['commentary', 'scorecard', 'analytics', 'squads', 'info'];
+    tabs.forEach(t => {
+      const btn = document.getElementById('mctab-' + t);
+      const panel = document.getElementById('mc-panel-' + t);
+      if (btn) btn.classList.toggle('subtab-active', t === tab);
+      if (panel) panel.classList.toggle('hidden', t !== tab);
+    });
+    if (tab === 'analytics') {
+      setTimeout(() => {
+        drawWagonWheel();
+        drawPitchMap();
+        renderManhattanChart();
+      }, 40);
+    }
+  };
+
+  window.filterCommentary = function(f) {
+    state.commFilter = f;
+    document.querySelectorAll('.comm-filter-btn').forEach(btn => {
+      const active = btn.getAttribute('data-cfilter') === f;
+      btn.className = active
+        ? 'comm-filter-btn px-2.5 py-1 rounded-md text-xs font-bold bg-[#009270] text-white'
+        : 'comm-filter-btn px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-200 dark:bg-slate-800';
+    });
+    renderMatchCenter();
+  };
+
+  function renderMatchCenter() {
+    const m = getActiveMatch();
+
+    // Selector pills
+    const sel = document.getElementById('mc-match-selector');
+    if (sel) {
+      sel.innerHTML = DATA.matches.map(item => `
+        <button onclick="selectMatch('${item.id}')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition ${item.id === m.id ? 'bg-[#009270] text-white' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'}">
+          ${item.team1.flag} ${item.team1.code} vs ${item.team2.code} ${item.team2.flag}
+        </button>
+      `).join('');
+    }
+
+    // Header Content
+    const hdr = document.getElementById('mc-header-content');
+    if (hdr) {
+      hdr.innerHTML = `
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div>
+            <span class="text-xs font-bold text-[#009270] dark:text-emerald-400">${m.series}</span>
+            <h1 class="text-lg sm:text-2xl font-black mt-0.5">${m.team1.name} vs ${m.team2.name}</h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400">📍 ${m.venue} • 🪙 ${m.toss}</p>
+          </div>
+          <span class="px-3 py-1 rounded-full text-xs font-black bg-red-500/15 text-red-500 flex items-center gap-1.5">
+            ${m.status === 'LIVE' ? '<span class="live-dot"></span>' : ''}${m.statusBadge}
+          </span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 my-3">
+          <div class="p-3.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 flex items-center justify-between">
+            <span class="font-extrabold text-base flex items-center gap-2"><span class="text-2xl">${m.team1.flag}</span> ${m.team1.name}</span>
+            <span class="font-black text-lg sm:text-xl text-emerald-500">${m.team1.score} <span class="text-xs font-normal text-slate-400">(${m.team1.overs})</span></span>
+          </div>
+          <div class="p-3.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 flex items-center justify-between">
+            <span class="font-extrabold text-base flex items-center gap-2"><span class="text-2xl">${m.team2.flag}</span> ${m.team2.name}</span>
+            <span class="font-black text-lg sm:text-xl">${m.team2.score} <span class="text-xs font-normal text-slate-400">(${m.team2.overs})</span></span>
+          </div>
+        </div>
+        <div class="text-xs font-bold text-amber-500 dark:text-amber-400">⚡ ${m.summaryText}</div>
+      `;
+    }
+
+    // Commentary List
+    const commBox = document.getElementById('mc-commentary-list');
+    if (commBox) {
+      const filtered = m.commentary.filter(c => state.commFilter === 'ALL' || c.type === state.commFilter);
+      commBox.innerHTML = (filtered.length ? filtered : m.commentary).map(c => `
+        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/70 dark:border-slate-800 flex items-start gap-3">
+          <div class="flex flex-col items-center shrink-0">
+            <span class="text-xs font-black text-slate-500 mb-1">${c.over}</span>
+            <span class="ball-badge ball-${c.ball}">${c.ball}</span>
+          </div>
+          <div class="text-xs sm:text-sm leading-relaxed">
+            <div class="font-bold text-slate-800 dark:text-slate-200 mb-0.5">${c.bowler} to ${c.batter}</div>
+            <p class="text-slate-600 dark:text-slate-300">${c.text}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Mini Crease & Win Prob
+    const crease = document.getElementById('mc-mini-crease');
+    if (crease) {
+      crease.innerHTML = `
+        <h4 class="font-extrabold text-sm mb-3">At the Crease</h4>
+        <div class="space-y-2 text-xs">
+          ${m.currentBatters.map(b => `
+            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
+              <span class="font-bold">${b.name} ${b.onStrike ? '🏏' : ''}</span>
+              <span class="font-black">${b.runs}(${b.balls}) • SR ${b.sr}</span>
+            </div>
+          `).join('')}
+          <div class="pt-2 border-t border-slate-200 dark:border-slate-700">
+            <div class="text-[11px] uppercase text-slate-400 font-bold mb-1">Current Bowler</div>
+            ${m.currentBowlers.map(bw => `
+              <div class="flex items-center justify-between py-1">
+                <span class="font-semibold">${bw.name}</span>
+                <span class="font-bold text-emerald-500">${bw.wickets}/${bw.runs} (${bw.overs} Ov)</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    const wp = document.getElementById('mc-win-prob-card');
+    if (wp) {
+      wp.innerHTML = `
+        <h4 class="font-extrabold text-sm mb-2">Real-Time Win Probability</h4>
+        <div class="flex items-center justify-between text-xs font-bold mb-1.5">
+          <span class="text-emerald-500">${m.team1.code}: ${m.team1.winProb}%</span>
+          ${m.drawProb ? `<span class="text-slate-400">Draw: ${m.drawProb}%</span>` : ''}
+          <span class="text-amber-500">${m.team2.code}: ${m.team2.winProb}%</span>
+        </div>
+        <div class="w-full h-3 rounded-full bg-slate-800 overflow-hidden flex">
+          <div class="bg-emerald-500 h-full" style="width:${m.team1.winProb}%"></div>
+          <div class="bg-slate-500 h-full" style="width:${m.drawProb || 0}%"></div>
+          <div class="bg-amber-500 h-full" style="width:${m.team2.winProb}%"></div>
+        </div>
+      `;
+    }
+
+    // Scorecard Container
+    const sc = document.getElementById('mc-scorecard-container');
+    if (sc) {
+      const inningsList = m.innings && m.innings.length ? m.innings : DATA.matches[0].innings;
+      sc.innerHTML = inningsList.map(inn => `
+        <div class="yc-card overflow-hidden">
+          <div class="bg-[#009270] text-white px-4 py-3 flex items-center justify-between">
+            <span class="font-extrabold text-sm sm:text-base">${inn.title}</span>
+            <span class="font-black text-sm sm:text-base">${inn.total}</span>
+          </div>
+          <div class="p-4 space-y-4">
+            <div class="responsive-table-wrap">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-400 uppercase text-[11px]">
+                    <th class="pb-2">Batter</th>
+                    <th class="pb-2">Dismissal</th>
+                    <th class="pb-2 text-right">R</th>
+                    <th class="pb-2 text-right">B</th>
+                    <th class="pb-2 text-right">4s</th>
+                    <th class="pb-2 text-right">6s</th>
+                    <th class="pb-2 text-right">SR</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${inn.batters.map(b => `
+                    <tr class="border-b border-slate-200/60 dark:border-slate-800">
+                      <td class="py-2.5 font-bold ${b.active ? 'text-emerald-500' : ''}">${b.name}</td>
+                      <td class="py-2.5 text-slate-500 dark:text-slate-400">${b.dismissal}</td>
+                      <td class="py-2.5 text-right font-extrabold">${b.r}</td>
+                      <td class="py-2.5 text-right">${b.b}</td>
+                      <td class="py-2.5 text-right">${b.fours}</td>
+                      <td class="py-2.5 text-right">${b.sixes}</td>
+                      <td class="py-2.5 text-right font-semibold">${b.sr}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+            <div class="text-xs text-slate-500 dark:text-slate-400 space-y-1 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg">
+              <div><strong>Extras:</strong> ${inn.extras}</div>
+              <div><strong>Did Not Bat:</strong> ${inn.dnb}</div>
+              <div><strong>Fall of Wickets:</strong> ${inn.fow}</div>
+            </div>
+            <div class="responsive-table-wrap">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-400 uppercase text-[11px]">
+                    <th class="pb-2">Bowler</th>
+                    <th class="pb-2 text-right">O</th>
+                    <th class="pb-2 text-right">M</th>
+                    <th class="pb-2 text-right">R</th>
+                    <th class="pb-2 text-right">W</th>
+                    <th class="pb-2 text-right">NB</th>
+                    <th class="pb-2 text-right">WD</th>
+                    <th class="pb-2 text-right">ECO</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${inn.bowlers.map(bw => `
+                    <tr class="border-b border-slate-200/60 dark:border-slate-800">
+                      <td class="py-2 font-bold">${bw.name}</td>
+                      <td class="py-2 text-right">${bw.o}</td>
+                      <td class="py-2 text-right">${bw.m}</td>
+                      <td class="py-2 text-right">${bw.r}</td>
+                      <td class="py-2 text-right font-extrabold text-emerald-500">${bw.w}</td>
+                      <td class="py-2 text-right">${bw.nb}</td>
+                      <td class="py-2 text-right">${bw.wd}</td>
+                      <td class="py-2 text-right font-semibold">${bw.eco}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Squads
+    const sq = document.getElementById('mc-squads-content');
+    if (sq && m.squads) {
+      sq.innerHTML = `
+        <div>
+          <h4 class="font-extrabold text-base mb-3">${m.team1.flag} ${m.team1.name} Playing XI</h4>
+          <div class="space-y-1.5 text-xs">
+            ${m.squads.t1Playing.map((p, i) => `<div class="p-2.5 rounded-lg bg-slate-100 dark:bg-slate-800 font-semibold">${i + 1}. ${p}</div>`).join('')}
+          </div>
+          <div class="mt-3 text-xs text-slate-400"><strong>Bench:</strong> ${m.squads.t1Bench.join(', ')}</div>
+        </div>
+        <div>
+          <h4 class="font-extrabold text-base mb-3">${m.team2.flag} ${m.team2.name} Playing XI</h4>
+          <div class="space-y-1.5 text-xs">
+            ${m.squads.t2Playing.map((p, i) => `<div class="p-2.5 rounded-lg bg-slate-100 dark:bg-slate-800 font-semibold">${i + 1}. ${p}</div>`).join('')}
+          </div>
+          <div class="mt-3 text-xs text-slate-400"><strong>Bench:</strong> ${m.squads.t2Bench.join(', ')}</div>
+        </div>
+      `;
+    }
+
+    // Match Info
+    const info = document.getElementById('mc-info-content');
+    if (info) {
+      info.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div class="p-4 rounded-xl bg-slate-100 dark:bg-slate-800 space-y-2">
+            <h4 class="font-extrabold text-sm text-emerald-500">Match Details & Officials</h4>
+            <div><strong>Series:</strong> ${m.series}</div>
+            <div><strong>Venue:</strong> ${m.venue}</div>
+            <div><strong>Toss:</strong> ${m.toss}</div>
+            <div><strong>Umpires:</strong> ${m.umpires}</div>
+            <div><strong>Match Referee:</strong> ${m.referee}</div>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-100 dark:bg-slate-800 space-y-2">
+            <h4 class="font-extrabold text-sm text-amber-500">Pitch & Weather Radar</h4>
+            <div><strong>Condition:</strong> ${m.weather.condition} (${m.weather.temp})</div>
+            <div><strong>Humidity & Wind:</strong> ${m.weather.humidity} • ${m.weather.wind}</div>
+            <div><strong>Rain Probability:</strong> ${m.weather.rainChance}</div>
+            <div><strong>Pitch Report:</strong> ${m.pitchReport}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (state.activeSubTab === 'analytics') {
+      drawWagonWheel();
+      drawPitchMap();
+      renderManhattanChart();
+    }
+  }
+
+  // HTML5 Canvas 360 Wagon Wheel
+  window.drawWagonWheel = function() {
+    const canvas = document.getElementById('wagon-wheel-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width;
+    const h = canvas.height;
+    const cx = w / 2;
+    const cy = h / 2;
+    const r = (w / 2) - 24;
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Outfield turf gradient
+    const grad = ctx.createRadialGradient(cx, cy, 10, cx, cy, r);
+    grad.addColorStop(0, '#059669');
+    grad.addColorStop(1, '#064e3b');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Boundary rope
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // 30-yard circle
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 0.45, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Pitch rectangle in center
+    ctx.fillStyle = '#d6bc8b';
+    ctx.fillRect(cx - 7, cy - 22, 14, 44);
+
+    // Filter shots
+    const batterSel = (document.getElementById('ww-batter-select') || {}).value || 'ALL';
+    const runsSel = (document.getElementById('ww-runs-select') || {}).value || 'ALL';
+
+    const shots = DATA.wagonWheelShots.filter(s => {
+      if (batterSel !== 'ALL' && s.batter !== batterSel) return false;
+      if (runsSel !== 'ALL' && String(s.runs) !== runsSel) return false;
+      return true;
+    });
+
+    shots.forEach(s => {
+      const rad = (s.angle - 90) * (Math.PI / 180);
+      const tx = cx + Math.cos(rad) * (r * s.dist);
+      const ty = cy + Math.sin(rad) * (r * s.dist);
+
+      ctx.strokeStyle = s.runs === 6 ? '#a855f7' : (s.runs === 4 ? '#34d399' : '#fbbf24');
+      ctx.lineWidth = s.runs >= 4 ? 3 : 2;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(tx, ty);
+      ctx.stroke();
+
+      ctx.fillStyle = ctx.strokeStyle;
+      ctx.beginPath();
+      ctx.arc(tx, ty, 4, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  };
+
+  // HTML5 Canvas Hawkeye Pitch Map
+  window.drawPitchMap = function() {
+    const canvas = document.getElementById('pitch-map-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width;
+    const h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    // Turf surround
+    ctx.fillStyle = '#064e3b';
+    ctx.fillRect(0, 0, w, h);
+
+    // Pitch strip
+    const px = 85;
+    const pw = w - 170;
+    ctx.fillStyle = '#d4b483';
+    ctx.fillRect(px, 20, pw, h - 40);
+
+    // Length bands
+    const bands = [
+      { y: 40, h: 55, label: 'YORKER / FULL TOSS', color: 'rgba(245, 158, 11, 0.22)' },
+      { y: 95, h: 75, label: 'FULL LENGTH', color: 'rgba(16, 185, 129, 0.22)' },
+      { y: 170, h: 95, label: 'GOOD LENGTH', color: 'rgba(59, 130, 246, 0.22)' },
+      { y: 265, h: 85, label: 'SHORT / BOUNCER', color: 'rgba(139, 92, 246, 0.22)' }
+    ];
+    bands.forEach(b => {
+      ctx.fillStyle = b.color;
+      ctx.fillRect(px, b.y, pw, b.h);
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.65)';
+      ctx.font = 'bold 10px Inter, sans-serif';
+      ctx.fillText(b.label, px + 8, b.y + 15);
+    });
+
+    // Stumps at top
+    ctx.fillStyle = '#ffffff';
+    for (let i = -1; i <= 1; i++) {
+      ctx.fillRect(w / 2 + i * 8 - 2, 24, 4, 16);
+    }
+
+    const lenSel = (document.getElementById('pm-length-select') || {}).value || 'ALL';
+    DATA.pitchDeliveries
+      .filter(d => lenSel === 'ALL' || d.length === lenSel)
+      .forEach(d => {
+        const bx = px + d.x * pw;
+        const by = 30 + d.y * (h - 60);
+        ctx.fillStyle = d.outcome === 'W' ? '#ef4444' : (d.outcome === '4' || d.outcome === '6' ? '#10b981' : '#3b82f6');
+        ctx.beginPath();
+        ctx.arc(bx, by, 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      });
+  };
+
+  // Chart.js Manhattan / Worm Chart
+  function renderManhattanChart() {
+    const canvas = document.getElementById('manhattan-chart');
+    if (!canvas || typeof Chart === 'undefined') return;
+    if (state.manhattanChartInstance) {
+      state.manhattanChartInstance.destroy();
+    }
+    const m = getActiveMatch();
+    const labels = m.manhattan1.map((_, idx) => `Ov ${idx + 1}`);
+    state.manhattanChartInstance = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: m.team1.name,
+            data: m.manhattan1,
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.15)',
+            tension: 0.35,
+            fill: true
+          },
+          {
+            label: m.team2.name,
+            data: m.manhattan2,
+            borderColor: '#f59e0b',
+            backgroundColor: 'rgba(245, 158, 11, 0.12)',
+            tension: 0.35,
+            fill: true
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#94a3b8', font: { weight: 'bold' } } }
+        },
+        scales: {
+          x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.1)' } },
+          y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.1)' } }
+        }
+      }
+    });
+  }
+
+  // Series & Standings View
+  window.renderSeriesTable = function(seriesName) {
+    const wtcBtn = document.getElementById('st-btn-wtc');
+    const iplBtn = document.getElementById('st-btn-ipl');
+    if (wtcBtn && iplBtn) {
+      wtcBtn.className = seriesName === 'WTC 2025-27'
+        ? 'px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#009270] text-white'
+        : 'px-3.5 py-1.5 rounded-lg text-xs font-bold bg-slate-200 dark:bg-slate-800';
+      iplBtn.className = seriesName === 'IPL 2026'
+        ? 'px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#009270] text-white'
+        : 'px-3.5 py-1.5 rounded-lg text-xs font-bold bg-slate-200 dark:bg-slate-800';
+    }
+    const container = document.getElementById('series-standings-table');
+    if (!container) return;
+    const rows = DATA.seriesStandings[seriesName] || [];
+    container.innerHTML = `
+      <table class="w-full text-left border-collapse text-xs sm:text-sm">
+        <thead>
+          <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-400 uppercase text-[11px]">
+            <th class="pb-2.5">#</th>
+            <th class="pb-2.5">Team</th>
+            <th class="pb-2.5 text-right">P</th>
+            <th class="pb-2.5 text-right">W</th>
+            <th class="pb-2.5 text-right">L</th>
+            <th class="pb-2.5 text-right">D/T</th>
+            <th class="pb-2.5 text-right">Pts</th>
+            <th class="pb-2.5 text-right">PCT / NRR</th>
+            <th class="pb-2.5 text-right">Last 5</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(r => `
+            <tr class="border-b border-slate-200/60 dark:border-slate-800">
+              <td class="py-3 font-bold">${r.pos}</td>
+              <td class="py-3 font-extrabold">${r.team}</td>
+              <td class="py-3 text-right">${r.p}</td>
+              <td class="py-3 text-right font-semibold text-emerald-500">${r.w}</td>
+              <td class="py-3 text-right text-red-400">${r.l}</td>
+              <td class="py-3 text-right">${r.d}</td>
+              <td class="py-3 text-right font-black">${r.pts}</td>
+              <td class="py-3 text-right font-semibold">${r.pct} (${r.nrr})</td>
+              <td class="py-3 text-right">${r.form.map(f => `<span class="inline-block w-5 h-5 leading-5 text-center rounded text-[10px] font-bold ml-0.5 ${f === 'W' ? 'bg-emerald-500/20 text-emerald-400' : (f === 'L' ? 'bg-red-500/20 text-red-400' : 'bg-slate-500/20 text-slate-400')}">${f}</span>`).join('')}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  };
+
+  function renderScheduleFixtures() {
+    const box = document.getElementById('schedule-fixtures-list');
+    if (!box) return;
+    box.innerHTML = DATA.matches.map(m => `
+      <div onclick="selectMatch('${m.id}')" class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 hover:border-emerald-500 cursor-pointer transition">
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+          <span>${m.series}</span>
+          <span class="font-bold text-emerald-400">${m.statusBadge}</span>
+        </div>
+        <div class="font-extrabold text-sm sm:text-base mb-1">${m.team1.flag} ${m.team1.name} (${m.team1.score}) vs ${m.team2.flag} ${m.team2.name} (${m.team2.score})</div>
+        <div class="text-xs text-slate-500">${m.summaryText}</div>
+      </div>
+    `).join('');
+  }
+
+  // Head-to-Head Player Stats Comparator
+  function initH2HDropdowns() {
+    const s1 = document.getElementById('h2h-p1');
+    const s2 = document.getElementById('h2h-p2');
+    if (!s1 || !s2) return;
+    const opts = DATA.players.map(p => `<option value="${p.id}">${p.name} (${p.country})</option>`).join('');
+    s1.innerHTML = opts;
+    s2.innerHTML = opts;
+    s1.value = 'p1';
+    s2.value = 'p2';
+  }
+
+  window.renderH2HComparison = function() {
+    const id1 = (document.getElementById('h2h-p1') || {}).value || 'p1';
+    const id2 = (document.getElementById('h2h-p2') || {}).value || 'p2';
+    const fmt = (document.getElementById('h2h-format') || {}).value || 'test';
+    const p1 = DATA.players.find(p => p.id === id1) || DATA.players[0];
+    const p2 = DATA.players.find(p => p.id === id2) || DATA.players[1];
+    const st1 = p1[fmt];
+    const st2 = p2[fmt];
+    const out = document.getElementById('h2h-comparison-output');
+    if (!out) return;
+
+    const metrics = [
+      { label: 'Matches Played', v1: st1.m, v2: st2.m },
+      { label: 'Career Runs', v1: st1.runs, v2: st2.runs },
+      { label: 'Batting / Bowling Average', v1: st1.avg, v2: st2.avg },
+      { label: 'Strike Rate', v1: st1.sr, v2: st2.sr },
+      { label: '100s / Wickets', v1: st1.hundreds, v2: st2.hundreds },
+      { label: '50s / 5W Hauls', v1: st1.fifties, v2: st2.fifties },
+      { label: 'Career Best (HS / BBI)', v1: st1.hs, v2: st2.hs }
+    ];
+
+    out.innerHTML = `
+      <div class="grid grid-cols-2 gap-4 mb-5">
+        <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+          <div class="text-xs text-emerald-400 font-bold">${p1.country}</div>
+          <div class="text-base sm:text-xl font-black">${p1.name}</div>
+          <div class="text-xs text-slate-400">${p1.role} • ${p1.style}</div>
+        </div>
+        <div class="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-right">
+          <div class="text-xs text-amber-400 font-bold">${p2.country}</div>
+          <div class="text-base sm:text-xl font-black">${p2.name}</div>
+          <div class="text-xs text-slate-400">${p2.role} • ${p2.style}</div>
+        </div>
+      </div>
+      <div class="space-y-2.5">
+        ${metrics.map(row => `
+          <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/70 grid grid-cols-3 items-center text-xs sm:text-sm">
+            <div class="font-black text-emerald-500">${row.v1}</div>
+            <div class="text-center text-slate-400 font-bold text-xs uppercase">${row.label}</div>
+            <div class="text-right font-black text-amber-400">${row.v2}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  };
+
+  // ICC Rankings View
+  window.renderRankings = function() {
+    const gender = (document.getElementById('rank-gender') || {}).value || 'men';
+    const format = (document.getElementById('rank-format') || {}).value || 'TEST';
+    const data = DATA.iccRankings[gender][format];
+    const grid = document.getElementById('icc-rankings-grid');
+    if (!grid || !data) return;
+
+    const sections = [
+      { title: 'Top Teams', items: data.teams, subKey: 'points', subLabel: 'Pts' },
+      { title: 'Top Batters', items: data.batters, subKey: 'best', subLabel: 'Best' },
+      { title: 'Top Bowlers', items: data.bowlers, subKey: 'best', subLabel: 'Best' }
+    ];
+
+    grid.innerHTML = sections.map(sec => `
+      <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800">
+        <h3 class="font-extrabold text-sm sm:text-base mb-3 text-[#009270] dark:text-emerald-400">${format} — ${sec.title}</h3>
+        <div class="space-y-2">
+          ${sec.items.map(item => `
+            <div class="flex items-center justify-between p-2.5 rounded-lg bg-white dark:bg-slate-900/70 text-xs">
+              <div class="flex items-center gap-2.5">
+                <span class="w-6 h-6 rounded-full bg-emerald-500/15 text-emerald-500 font-black flex items-center justify-center">${item.rank}</span>
+                <div>
+                  <div class="font-bold">${item.name}</div>
+                  <div class="text-[10px] text-slate-400">${sec.subLabel}: ${item[sec.subKey]}</div>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="font-black text-sm">${item.rating}</div>
+                <div class="text-[10px] font-bold text-emerald-400">${item.trend}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+  };
+
+  // News & Article Reader Modal
+  function renderFullNews() {
+    const g = document.getElementById('full-news-grid');
+    if (!g) return;
+    g.innerHTML = DATA.news.map(n => `
+      <div onclick="openArticleModal('${n.id}')" class="p-5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 hover:border-emerald-500 cursor-pointer transition space-y-2">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-black text-emerald-500">${n.badge} • ${n.category}</span>
+          <span class="text-slate-400">${n.readTime}</span>
+        </div>
+        <h3 class="text-base font-extrabold">${n.title}</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400">${n.summary}</p>
+        <div class="text-[11px] text-slate-400 pt-2">By ${n.author} • ${n.time}</div>
+      </div>
+    `).join('');
+  }
+
+  window.openArticleModal = function(id) {
+    const n = DATA.news.find(x => x.id === id) || DATA.news[0];
+    document.getElementById('modal-article-badge').textContent = `${n.badge} • ${n.category}`;
+    document.getElementById('modal-article-title').textContent = n.title;
+    document.getElementById('modal-article-meta').textContent = `By ${n.author} • ${n.time} • ${n.readTime}`;
+    document.getElementById('modal-article-body').innerHTML = n.body.map(p => `<p>${p}</p>`).join('');
+    document.getElementById('article-modal').classList.remove('hidden');
+  };
+
+  window.closeArticleModal = function() {
+    document.getElementById('article-modal').classList.add('hidden');
+  };
+
+  // DRS Hawkeye Simulator
+  window.runDrsSimulation = function() {
+    const canvas = document.getElementById('drs-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width;
+    const h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    const pitching = (document.getElementById('drs-pitching') || {}).value || 'IN_LINE';
+    const impact = (document.getElementById('drs-impact') || {}).value || 'IN_LINE';
+    const spin = (document.getElementById('drs-spin') || {}).value || 'HIT_STUMPS';
+
+    // Pitch strip & inline zone
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(16, 185, 129, 0.18)';
+    ctx.fillRect(60, 95, w - 120, 90);
+
+    // Stumps on right
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(w - 65, 105, 6, 70);
+    ctx.fillRect(w - 55, 105, 6, 70);
+    ctx.fillRect(w - 45, 105, 6, 70);
+
+    // Ball trajectory curve
+    const pitchY = pitching === 'IN_LINE' ? 140 : (pitching === 'OUTSIDE_OFF' ? 80 : 205);
+    const impY = impact === 'IN_LINE' ? 140 : (impact === 'UMPIRES_CALL' ? 100 : 70);
+    const endY = spin === 'HIT_STUMPS' ? 140 : (spin === 'CLIPPING' ? 105 : 65);
+
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(70, 135);
+    ctx.lineTo(220, pitchY);
+    ctx.lineTo(350, impY);
+    ctx.lineTo(w - 55, endY);
+    ctx.stroke();
+
+    // Points
+    [{ x: 220, y: pitchY, c: '#3b82f6' }, { x: 350, y: impY, c: '#f59e0b' }, { x: w - 55, y: endY, c: '#ef4444' }].forEach(pt => {
+      ctx.fillStyle = pt.c;
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, 7, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    const banner = document.getElementById('drs-verdict-banner');
+    if (banner) {
+      if (pitching === 'OUTSIDE_LEG' || impact === 'OUTSIDE_OFF' || spin === 'MISSING') {
+        banner.className = 'p-3 rounded-xl text-center font-black text-sm bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+        banner.textContent = 'DECISION: NOT OUT — BALL TRACKING SHOWS MISSING / OUTSIDE LINE!';
+      } else if (impact === 'UMPIRES_CALL' || spin === 'CLIPPING') {
+        banner.className = 'p-3 rounded-xl text-center font-black text-sm bg-amber-500/20 text-amber-300 border border-amber-500/30';
+        banner.textContent = "DECISION: UMPIRE'S CALL — TEAM RETAINS REVIEW!";
+      } else {
+        banner.className = 'p-3 rounded-xl text-center font-black text-sm bg-red-500/20 text-red-400 border border-red-500/30';
+        banner.textContent = 'DECISION: OUT — THREE REDS! CRASHING INTO MIDDLE STUMP!';
+      }
+    }
+  };
+
+  // DLS Calculator
+  window.calculateDls = function() {
+    const r1 = parseFloat((document.getElementById('dls-t1-runs') || {}).value) || 200;
+    const maxOv = parseFloat((document.getElementById('dls-max-overs') || {}).value) || 20;
+    const revOv = parseFloat((document.getElementById('dls-rev-overs') || {}).value) || 14;
+    const wkts = parseFloat((document.getElementById('dls-wickets') || {}).value) || 2;
+
+    const ovRatio = Math.pow(Math.min(1, revOv / maxOv), 0.86);
+    const wktPenalty = 1 + (wkts * 0.045);
+    const parScore = Math.round(r1 * ovRatio * wktPenalty);
+    const winTarget = parScore + 1;
+    const reqRR = (winTarget / Math.max(1, revOv)).toFixed(2);
+
+    const box = document.getElementById('dls-result-box');
+    if (box) {
+      box.innerHTML = `
+        <div class="flex items-center justify-between"><span>DLS Par Score (${revOv} Ov):</span><span class="font-black text-amber-400">${parScore} runs</span></div>
+        <div class="flex items-center justify-between"><span>Revised Winning Target:</span><span class="font-black text-emerald-400 text-sm">${winTarget} runs</span></div>
+        <div class="flex items-center justify-between"><span>Required Run Rate:</span><span class="font-bold">${reqRR} RPO</span></div>
+      `;
+    }
+  };
+
+  // Custom Dream XI Builder
+  function renderDreamXI() {
+    const box = document.getElementById('dream-xi-pool');
+    const countEl = document.getElementById('xi-count');
+    if (countEl) countEl.textContent = state.dreamXI.length;
+    if (!box) return;
+    box.innerHTML = DREAM_POOL.map(name => {
+      const picked = state.dreamXI.includes(name);
+      return `
+        <button onclick="toggleDreamPlayer('${name}')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition border ${picked ? 'bg-[#009270] text-white border-[#009270]' : 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">
+          ${picked ? '✓ ' : '+ '}${name}
+        </button>
+      `;
+    }).join('');
+  }
+
+  window.toggleDreamPlayer = function(name) {
+    const idx = state.dreamXI.indexOf(name);
+    if (idx >= 0) {
+      state.dreamXI.splice(idx, 1);
+    } else {
+      if (state.dreamXI.length >= 11) {
+        showToast('Your World XI already has 11 players!');
+        return;
+      }
+      state.dreamXI.push(name);
+    }
+    renderDreamXI();
+  };
+
+  window.copyDreamXI = function() {
+    const text = `My YouCrick World XI (${state.dreamXI.length}/11): ` + state.dreamXI.join(', ');
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+    } catch (e) {}
+    showToast('Dream XI copied to clipboard!');
+  };
+
+  // Global Search Modal
+  window.openSearchModal = function() {
+    const m = document.getElementById('search-modal');
+    if (m) m.classList.remove('hidden');
+    const inp = document.getElementById('global-search-input');
+    if (inp) { inp.value = ''; inp.focus(); }
+    handleGlobalSearch();
+  };
+
+  window.closeSearchModal = function() {
+    const m = document.getElementById('search-modal');
+    if (m) m.classList.add('hidden');
+  };
+
+  window.handleGlobalSearch = function() {
+    const q = ((document.getElementById('global-search-input') || {}).value || '').toLowerCase().trim();
+    const res = document.getElementById('global-search-results');
+    if (!res) return;
+
+    const matchHits = DATA.matches.filter(m =>
+      !q || m.series.toLowerCase().includes(q) || m.team1.name.toLowerCase().includes(q) || m.team2.name.toLowerCase().includes(q)
+    );
+    const playerHits = DATA.players.filter(p =>
+      !q || p.name.toLowerCase().includes(q) || p.country.toLowerCase().includes(q)
+    );
+
+    res.innerHTML = [
+      ...matchHits.map(m => `
+        <div onclick="closeSearchModal(); selectMatch('${m.id}')" class="p-2.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:border-emerald-500 border border-transparent cursor-pointer flex items-center justify-between text-xs">
+          <span class="font-bold">🏏 ${m.team1.name} vs ${m.team2.name} (${m.format})</span>
+          <span class="text-emerald-500 font-bold">${m.team1.score}</span>
+        </div>
+      `),
+      ...playerHits.map(p => `
+        <div onclick="closeSearchModal(); switchMainView('stats')" class="p-2.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:border-emerald-500 border border-transparent cursor-pointer flex items-center justify-between text-xs">
+          <span class="font-bold">👤 ${p.name} (${p.country})</span>
+          <span class="text-slate-400">${p.role}</span>
+        </div>
+      `)
+    ].join('');
+  };
+
+  // Keyboard shortcut Ctrl+K / ESC
+  window.addEventListener('keydown', function(e) {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      openSearchModal();
+    } else if (e.key === 'Escape') {
+      closeSearchModal();
+      closeArticleModal();
+    }
+  });
+
+  // Initialize App on Load
+  window.addEventListener('DOMContentLoaded', function() {
+    initH2HDropdowns();
+    renderTickerStrip();
+    renderHomeFeatured();
+    renderHomeWidgets();
+    renderMatchCenter();
+  });
+})();
+
+</script>
+</body>
+</html>

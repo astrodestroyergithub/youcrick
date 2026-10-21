@@ -1,0 +1,9 @@
+{
+  "name": "YouCrick — Live Cricket Scores & Analytics",
+  "short_name": "YouCrick",
+  "description": "Responsive Cricbuzz-inspired Cricket Platform with Live Scores, Ball-by-Ball Commentary, 360 Wagon Wheel, Hawkeye Pitch Map, ICC Rankings, and DRS Simulator.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#090d16",
+  "theme_color": "#009270"
+}
